@@ -1,0 +1,5 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://tvntvn:Paskajaska12@tvntvn.ubyu5ux.mongodb.net/?retryWrites=true&w=majority
+      database: Letsplay

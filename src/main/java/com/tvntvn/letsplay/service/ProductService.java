@@ -7,4 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProductService {
   @Autowired private ProductRepository repository;
+
+  // TODO CRUD OPERATIONS:
+
 }
