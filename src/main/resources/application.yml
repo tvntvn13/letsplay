@@ -1,5 +1,5 @@
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://tvntvn:Paskajaska12@tvntvn.ubyu5ux.mongodb.net/?retryWrites=true&w=majority
-      database: Letsplay
+      uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_USERNAME}.ubyu5ux.mongodb.net/?retryWrites=true&w=majority
+      database: letsplay
