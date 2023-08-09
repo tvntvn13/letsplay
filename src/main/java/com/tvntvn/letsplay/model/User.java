@@ -1,17 +1,32 @@
 package com.tvntvn.letsplay.model;
 
-import lombok.AllArgsConstructor;
+import com.mongodb.lang.NonNull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "user")
+@Document(collection = "users")
 @Data
-@AllArgsConstructor
 public class User {
   @Id private String id;
+
+  @NonNull
+  @Size(max = 40)
   private String name;
+
+  @NonNull
+  @Email
+  @Size(max = 70)
   private String email;
+
+  @NonNull
+  @Size(max = 60)
   private String password;
-  private String role;
+
+  @DBRef private Set<Role> roles = new HashSet<>();
 }
