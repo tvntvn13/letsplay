@@ -39,7 +39,7 @@ public class UserService {
     existingUser.setName(user.getName());
     existingUser.setPassword(user.getPassword());
     existingUser.setEmail(user.getEmail());
-    existingUser.setRole(user.getRole());
+    existingUser.setRoles(user.getRoles());
     return repository.save(existingUser);
   }
 
