@@ -41,7 +41,7 @@ public class SecurityConfig {
         .permitAll()
         .and()
         .authorizeHttpRequests()
-        .requestMatchers("/api/users")
+        .requestMatchers("/api/users", "/api/users/**", "/api/products/**")
         .authenticated()
         .and()
         .sessionManagement()
