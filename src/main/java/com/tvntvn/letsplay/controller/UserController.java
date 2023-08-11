@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
 public class UserController {
   @Autowired private UserService service;
 
@@ -31,27 +31,29 @@ public class UserController {
     return service.findAllUsers();
   }
 
-  @GetMapping("/{userId}")
+  @GetMapping(value = "/id/{userId}")
   public User getUser(@PathVariable String userId) {
-    return service.findUserById(userId);
+    System.out.println("deleting: " + userId);
+    System.out.println(service.findUserById(userId).toString());
+    return service.findUserById(userId).isPresent() ? service.findUserById(userId).get() : null;
   }
 
-  @GetMapping("name/{name}")
-  public List<User> getUserByName(@PathVariable String name) {
-    return service.findUserByName(name);
-  }
+  // @GetMapping("/name/{name}")
+  // public Optional<User> getUserByName(@PathVariable String name) {
+  //   return service.findUserByName(name);
+  // }
 
-  @GetMapping("email/{email}")
-  public User getUserByEmail(@PathVariable String email) {
-    return service.findUserByEmail(email);
-  }
+  // @GetMapping("/email/{email}")
+  // public Optional<User> getUserByEmail(@PathVariable String email) {
+  //   return service.findUserByEmail(email);
+  // }
 
-  @PutMapping
+  @PutMapping("/update")
   public User modifyUser(@RequestBody User user) {
     return service.updateUser(user);
   }
 
-  @DeleteMapping("/{userId}")
+  @DeleteMapping("/delete/{userId}")
   public String deleteUser(@PathVariable String userId) {
     return service.deleteUser(userId);
   }

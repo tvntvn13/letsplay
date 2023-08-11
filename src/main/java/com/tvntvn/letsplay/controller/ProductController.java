@@ -31,17 +31,17 @@ public class ProductController {
     return service.findAllProducts();
   }
 
-  @GetMapping("/{productId}")
+  @GetMapping("/id/{productId}")
   public Product getProduct(@PathVariable String productId) {
     return service.findProductById(productId);
   }
 
-  @GetMapping("name/{name}")
+  @GetMapping("/name/{name}")
   public List<Product> getProductByName(@PathVariable String name) {
     return service.findProductByName(name);
   }
 
-  @PutMapping
+  @PutMapping("/update")
   public Product modifyProduct(@RequestBody Product product) {
     return service.updateProduct(product);
   }

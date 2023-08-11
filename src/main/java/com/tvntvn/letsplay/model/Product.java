@@ -1,19 +1,22 @@
 package com.tvntvn.letsplay.model;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 // import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "product")
+@Builder
+@Document(collection = "products")
 @Data
-@AllArgsConstructor
 public class Product {
   @Id private String id;
-  private String name;
-  private String description;
-  private Double price;
+  @NotBlank private String name;
+  @NotBlank private String description;
+  @NotBlank private Double price;
+
+  @NotBlank
   // @DBRef
   private String userId;
 }

@@ -3,6 +3,7 @@ package com.tvntvn.letsplay.service;
 import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,16 +23,16 @@ public class UserService {
     return repository.findAll();
   }
 
-  public User findUserById(String id) {
-    return repository.findById(id).get();
+  public Optional<User> findUserById(String id) {
+    return repository.findById(id);
   }
 
-  public List<User> findUserByName(String name) {
+  public Optional<User> findUserByName(String name) {
     return repository.findByName(name);
   }
 
-  public User findUserByEmail(String email) {
-    return repository.findByEmail(email).get();
+  public Optional<User> findUserByEmail(String email) {
+    return repository.findByEmail(email);
   }
 
   public User updateUser(User user) {
