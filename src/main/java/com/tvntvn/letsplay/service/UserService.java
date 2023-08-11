@@ -3,7 +3,7 @@ package com.tvntvn.letsplay.service;
 import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
 import java.util.List;
-import java.util.UUID;
+// import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class UserService {
   // TODO CRUD OPERATIONS:
 
   public User addUser(User user) {
-    user.setId(UUID.randomUUID().toString().split("-")[0]);
+    // user.setId(UUID.randomUUID().toString().split("-")[0]);
     return repository.save(user);
   }
 
