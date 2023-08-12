@@ -4,6 +4,7 @@ import com.tvntvn.letsplay.filter.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,23 +33,21 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http.cors()
-        .and()
-        .csrf()
-        .disable()
-        .authorizeHttpRequests()
-        .requestMatchers("/api/products", "/api/auth/login", "/api/auth/signup")
-        .permitAll()
-        .and()
-        .authorizeHttpRequests()
-        .requestMatchers("/api/users", "/api/users/**", "/api/products/**")
-        .authenticated()
-        .and()
-        .sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
+    return http.csrf(csrf -> csrf.disable())
         .authenticationProvider(authenticationProvider())
         .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/products")
+                    .permitAll()
+                    .requestMatchers("/api/users", "/api/users/**", "/api/products/**")
+                    .authenticated()
+                    .anyRequest()
+                    .authenticated())
         .build();
   }
 
