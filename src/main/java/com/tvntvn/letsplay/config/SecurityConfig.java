@@ -1,6 +1,7 @@
 package com.tvntvn.letsplay.config;
 
 import com.tvntvn.letsplay.filter.JwtAuthFilter;
+import com.tvntvn.letsplay.filter.RateLimitFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,8 @@ public class SecurityConfig {
 
   @Autowired private JwtAuthFilter authFilter;
 
+  @Autowired private RateLimitFilter rateLimitFilter;
+
   @Bean
   public UserDetailsService userDetailsService() {
     return new UserInfoDetailsService();
@@ -34,7 +37,9 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http.csrf(csrf -> csrf.disable())
+        // .addFilter(rateLimitFilter)
         .authenticationProvider(authenticationProvider())
+        .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
