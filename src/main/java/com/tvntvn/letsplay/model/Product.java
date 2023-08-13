@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-// import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Builder
@@ -15,8 +14,5 @@ public class Product {
   @NotBlank private String name;
   @NotBlank private String description;
   @NotBlank private Double price;
-
-  @NotBlank
-  // @DBRef
-  private String userId;
+  @NotBlank private String userId;
 }

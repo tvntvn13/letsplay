@@ -2,10 +2,10 @@ package com.tvntvn.letsplay.service;
 
 import com.tvntvn.letsplay.model.Product;
 import com.tvntvn.letsplay.repository.ProductRepository;
-import jakarta.annotation.PostConstruct;
+// import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
+// import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ public class ProductService {
 
   @Autowired private ProductRepository repository;
 
-  @PostConstruct
+  // @PostConstruct
   public void createProducts() {
     if (repository.findAll().isEmpty()) {
       List<Product> products =
@@ -38,7 +38,7 @@ public class ProductService {
   }
 
   public Product addProduct(Product product) {
-    product.setId(UUID.randomUUID().toString().split("-")[0]);
+    // product.setId(UUID.randomUUID().toString().split("-")[0]);
     return repository.save(product);
   }
 

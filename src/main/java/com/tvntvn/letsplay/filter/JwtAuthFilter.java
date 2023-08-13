@@ -1,7 +1,8 @@
 package com.tvntvn.letsplay.filter;
 
-import com.tvntvn.letsplay.config.UserInfoDetailsService;
+// import com.tvntvn.letsplay.config.UserInfoDetailsService;
 import com.tvntvn.letsplay.service.JwtService;
+import com.tvntvn.letsplay.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
   @Autowired private JwtService jwtService;
 
-  @Autowired private UserInfoDetailsService userDetailsService;
+  @Autowired private UserService userService;
+
+  // public UserService userService() {
+  // return new UserService();
+  // return new UserInfoDetailsService();
+  // }
 
   @Override
   protected void doFilterInternal(
@@ -35,7 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+      UserDetails userDetails = userService.loadUserByUsername(username);
       if (jwtService.validateToken(token, userDetails)) {
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(

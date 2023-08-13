@@ -2,6 +2,7 @@ package com.tvntvn.letsplay.config;
 
 import com.tvntvn.letsplay.filter.JwtAuthFilter;
 import com.tvntvn.letsplay.filter.RateLimitFilter;
+import com.tvntvn.letsplay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
+// import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -29,10 +30,15 @@ public class SecurityConfig {
 
   @Autowired private RateLimitFilter rateLimitFilter;
 
-  @Bean
-  public UserDetailsService userDetailsService() {
-    return new UserInfoDetailsService();
-  }
+  @Autowired private UserService userService;
+
+  // @Autowired private UserRepository userRepository;
+
+  // @Bean
+  // public UserService userService() {
+  // return new UserService();
+  // return new UserInfoDetailsService();
+  // }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -64,7 +70,7 @@ public class SecurityConfig {
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-    authenticationProvider.setUserDetailsService(userDetailsService());
+    authenticationProvider.setUserDetailsService(userService);
     authenticationProvider.setPasswordEncoder(passwordEncoder());
     return authenticationProvider;
   }

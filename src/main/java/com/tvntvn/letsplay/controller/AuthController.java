@@ -5,11 +5,13 @@ import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.service.UserService;
+import com.tvntvn.letsplay.util.InputSanitizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +26,7 @@ public class AuthController {
 
   @Autowired PasswordEncoder encoder;
 
+  // @Autowired private UserService userService;
   @Autowired private UserService userService;
 
   @Autowired private UserRepository userRepository;
@@ -33,45 +36,44 @@ public class AuthController {
   @Autowired private JwtService jwtService;
 
   @PostMapping("/signup")
-  public String addNewUser(@RequestBody User user) {
-    if (userService.findUserByName(user.getName()).isPresent()) {
-      return "user already exists";
+  public ResponseEntity<String> addNewUser(@RequestBody User user) {
+    String cleanName = InputSanitizer.sanitize(user.getName());
+    String cleanEmail = InputSanitizer.sanitize(user.getEmail());
+    String cleanPassword = InputSanitizer.sanitize(user.getPassword());
+
+    if (userService.findUserByName(cleanName).isPresent()) {
+      return new ResponseEntity<String>("user already exists", HttpStatus.CONFLICT);
     }
-    if (userService.findUserByEmail(user.getEmail()).isPresent()) {
-      return "email is already taken";
+    if (userService.findUserByEmail(cleanEmail).isPresent()) {
+      return new ResponseEntity<String>("email already taken", HttpStatus.CONFLICT);
     }
-    User newUser = new User(user.getName(), user.getEmail(), encoder.encode(user.getPassword()));
+    User newUser = new User(cleanName, cleanEmail, encoder.encode(cleanPassword));
     newUser.setRole("user");
     userRepository.save(newUser);
-    return "user " + user.getName() + " registered";
-
-    // try {
-    //   userService.addUser(user);
-    // } catch (Exception e) {
-    //   return "error: " + e.getMessage();
-    // }
-    // return "user " + user.getName() + " was created";
+    return new ResponseEntity<String>(
+        "user: " + cleanName + " registered succesfully", HttpStatus.CREATED);
   }
 
   @PostMapping("/login")
-  public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-    System.out.println("in the login now.");
+  public ResponseEntity<String> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+    String cleanName = InputSanitizer.sanitize(authRequest.getUsername());
+    String cleanPassword = InputSanitizer.sanitize(authRequest.getPassword());
     try {
       Authentication authentication =
           authenticationManager.authenticate(
-              new UsernamePasswordAuthenticationToken(
-                  authRequest.getUsername(), authRequest.getPassword()));
+              new UsernamePasswordAuthenticationToken(cleanName, cleanPassword));
       System.out.println(authentication.toString());
       if (authentication.isAuthenticated()) {
         System.out.println("authenticated!");
-        return jwtService.generateToken(authRequest.getUsername());
+        return new ResponseEntity<>(
+            jwtService.generateToken(authRequest.getUsername()), HttpStatus.OK);
       } else {
         System.out.println("something went wrong");
-        throw new UsernameNotFoundException("invalid user request");
+        return new ResponseEntity<String>("invalid username or password", HttpStatus.BAD_REQUEST);
       }
     } catch (Exception e) {
-      System.out.println("catched error: " + e.getMessage());
+      return new ResponseEntity<String>(
+          "bad request, pls try again, " + e.getMessage(), HttpStatus.BAD_REQUEST);
     }
-    return "couldn't authenticate";
   }
 }

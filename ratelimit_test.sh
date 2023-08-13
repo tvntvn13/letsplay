@@ -1,8 +1,26 @@
 #!/bin/bash
 
-for i in {1..20}; do
+echo "sending 15 consecutive requests - some should fail"
+sleep 1
+for i in {1..15}; do
 	curl --head --silent -X GET http://localhost:8080/api/products | awk '/HTTP/{print $2}' &
-	# http --headers :8080/api/products &
+done
+
+wait
+sleep 1
+echo ""
+echo "sending 15 request with 1 second wait between - should not fail"
+sleep 1
+for i in {1..5}; do
+	curl --head --silent -X GET http://localhost:8080/api/products | awk '/HTTP/{print $2}' &
+done
+sleep 1
+for i in {1..5}; do
+	curl --head --silent -X GET http://localhost:8080/api/products | awk '/HTTP/{print $2}' &
+done
+sleep 1
+for i in {1..5}; do
+	curl --head --silent -X GET http://localhost:8080/api/products | awk '/HTTP/{print $2}' &
 done
 
 wait
