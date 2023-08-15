@@ -8,8 +8,7 @@ public class InputSanitizer {
   public InputSanitizer() {}
 
   public String sanitize(String s) {
-
-    String sanitized = s.replaceAll("[^\\w\\s-@!.]", "");
+    String sanitized = s.replaceAll("[^\\w -@!.]", "").trim();
     return sanitized;
   }
 }

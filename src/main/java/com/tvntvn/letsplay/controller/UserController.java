@@ -34,11 +34,6 @@ public class UserController {
 
   @Autowired InputSanitizer s;
 
-  // @PostMapping
-  // public ResponseEntity<User> createUser(@RequestBody User user) {
-  //   return service.addUser(user);
-  // }
-
   @GetMapping
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<List<User>> getUsers() {
@@ -67,8 +62,7 @@ public class UserController {
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> modifyUser(
       @RequestHeader("Authorization") String header, @RequestBody User user) {
-    // TODO check the fields that are present and only update those.
-    System.out.println("in update: \n");
+
     String token = header.substring(7);
     return service.updateUser(user, token);
   }

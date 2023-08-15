@@ -21,7 +21,6 @@ import com.tvntvn.letsplay.model.SignupRequest;
 import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
-// import com.tvntvn.letsplay.service.UserService;
 import com.tvntvn.letsplay.util.InputSanitizer;
 
 @CrossOrigin(origins = "*")
@@ -30,8 +29,6 @@ import com.tvntvn.letsplay.util.InputSanitizer;
 public class AuthController {
 
   @Autowired PasswordEncoder encoder;
-
-  // @Autowired private UserService userService;
 
   @Autowired private InputSanitizer s;
 
