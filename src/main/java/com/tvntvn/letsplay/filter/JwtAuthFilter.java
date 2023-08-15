@@ -1,14 +1,10 @@
 package com.tvntvn.letsplay.filter;
 
-// import com.tvntvn.letsplay.config.UserInfoDetailsService;
-import com.tvntvn.letsplay.service.JwtService;
-import com.tvntvn.letsplay.service.UserService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
+// import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,17 +12,22 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+// import com.tvntvn.letsplay.config.UserInfoDetailsService;
+import com.tvntvn.letsplay.service.JwtService;
+import com.tvntvn.letsplay.service.UserService;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Component
+@Order(1)
 public class JwtAuthFilter extends OncePerRequestFilter {
 
   @Autowired private JwtService jwtService;
 
   @Autowired private UserService userService;
-
-  // public UserService userService() {
-  // return new UserService();
-  // return new UserInfoDetailsService();
-  // }
 
   @Override
   protected void doFilterInternal(

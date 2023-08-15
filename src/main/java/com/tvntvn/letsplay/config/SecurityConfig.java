@@ -1,8 +1,5 @@
 package com.tvntvn.letsplay.config;
 
-import com.tvntvn.letsplay.filter.JwtAuthFilter;
-import com.tvntvn.letsplay.filter.RateLimitFilter;
-import com.tvntvn.letsplay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,14 +12,18 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-// import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.tvntvn.letsplay.filter.ExceptionFilter;
+import com.tvntvn.letsplay.filter.JwtAuthFilter;
+import com.tvntvn.letsplay.filter.RateLimitFilter;
+import com.tvntvn.letsplay.service.UserService;
+
 @Configuration
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @EnableWebSecurity
 public class SecurityConfig {
 
@@ -32,20 +33,14 @@ public class SecurityConfig {
 
   @Autowired private UserService userService;
 
-  // @Autowired private UserRepository userRepository;
-
-  // @Bean
-  // public UserService userService() {
-  // return new UserService();
-  // return new UserInfoDetailsService();
-  // }
+  @Autowired private ExceptionFilter exceptionFilter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http.csrf(csrf -> csrf.disable())
-        // .addFilter(rateLimitFilter)
         .authenticationProvider(authenticationProvider())
         .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(exceptionFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -58,7 +53,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/users", "/api/users/**", "/api/products/**")
                     .authenticated()
                     .anyRequest()
-                    .authenticated())
+                    .permitAll())
         .build();
   }
 

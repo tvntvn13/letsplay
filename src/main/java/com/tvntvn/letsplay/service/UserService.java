@@ -1,39 +1,48 @@
 package com.tvntvn.letsplay.service;
 
-import com.tvntvn.letsplay.model.User;
-import com.tvntvn.letsplay.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
-// import java.util.UUID;
+
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-// import org.springframework.stereotype.Component;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-// import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-// @Component
+import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.repository.UserRepository;
+import com.tvntvn.letsplay.util.InputSanitizer;
+import com.tvntvn.letsplay.util.ResponseFormatter;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class UserService implements UserDetailsService {
 
-  private final UserRepository repository;
+  @Autowired private UserRepository repository;
 
-  @Autowired
-  public UserService(UserRepository userRepository) {
-    this.repository = userRepository;
-  }
+  @Autowired private InputSanitizer s;
 
-  // public UserDetailsService userDetailsService() {
-  //   return new UserService();
+  private PasswordEncoder encoder;
+
+  @Autowired private JwtService jwtService;
+
+  @Autowired private ResponseFormatter f;
+
+  // @Autowired
+  // public UserService(UserRepository userRepository) {
+  //   this.repository = userRepository;
   // }
 
-  // private PasswordEncoder encoder = new BCryptPasswordEncoder();
+  @Autowired
+  public void encoder() {
+    this.encoder = new BCryptPasswordEncoder();
+  }
 
   // FIXME! fix the method logic
 
@@ -51,45 +60,101 @@ public class UserService implements UserDetailsService {
   //   return repository.save(user);
   // }
 
+  public ResponseEntity<Object> addAdminRights(String name) {
+    String clean = s.sanitize(name);
+    if (repository.findByName(clean).isPresent()) {
+      User existingUser = repository.findByName(clean).get();
+      existingUser.setRole("user,admin");
+      return f.format("admin rights granted to user:", existingUser.getName(), HttpStatus.OK);
+    } else {
+      return f.format("user not found with id:", clean, HttpStatus.NOT_FOUND);
+    }
+  }
+
+  public ResponseEntity<Object> removeAdminRights(String name) {
+    String clean = s.sanitize(name);
+    if (repository.findByName(clean).isPresent()) {
+      User existingUser = repository.findByName(clean).get();
+      existingUser.setRole("user");
+      return f.format("admin rights removed from user:", existingUser.getName(), HttpStatus.OK);
+    } else {
+      return f.format("user not found with name:", clean, HttpStatus.NOT_FOUND);
+    }
+  }
+
   public ResponseEntity<List<User>> findAllUsers() {
     return new ResponseEntity<List<User>>(repository.findAll(), HttpStatus.OK);
   }
 
-  // public String notFound(){
-  //   return
-  // }
-
-  public Optional<User> findUserById(String id) {
-    return repository.findById(id);
+  public ResponseEntity<Object> findUserById(String id) {
+    String clean = s.sanitize(id);
+    if (repository.findById(clean).isPresent()) {
+      return f.format(repository.findById(clean).get(), HttpStatus.OK);
+    } else {
+      return f.format("user not found with id:", clean, HttpStatus.NO_CONTENT);
+    }
   }
 
-  public Optional<User> findUserByName(String name) {
-    return repository.findByName(name);
+  public ResponseEntity<Object> findUserByName(String name) {
+    String clean = s.sanitize(name);
+    if (repository.findByName(clean).isPresent()) {
+      return f.format(repository.findByName(clean).get(), HttpStatus.OK);
+    } else {
+      return f.format("user not found by name:", clean, HttpStatus.NOT_FOUND);
+    }
   }
 
-  public Optional<User> findUserByEmail(String email) {
-    return repository.findByEmail(email);
+  public ResponseEntity<Object> findUserByEmail(String email) {
+    String clean = s.sanitize(email);
+    if (repository.findByEmail(clean).isPresent()) {
+      return f.format(repository.findByEmail(clean).get(), HttpStatus.OK);
+    } else {
+      return f.format("user not found by email:", clean, HttpStatus.NOT_FOUND);
+    }
   }
 
-  public User updateUser(User user) {
-    User existingUser = repository.findById(user.getId()).get();
-    existingUser.setName(user.getName());
-    existingUser.setPassword(user.getPassword());
-    existingUser.setEmail(user.getEmail());
-    existingUser.setRole(user.getRole());
-    return repository.save(existingUser);
+  public ResponseEntity<Object> updateUser(User user, String token) {
+    String username = jwtService.extractUsername(token);
+    System.out.println(username);
+    String id = repository.findByName(username).get().getId();
+    System.out.println(id);
+    ObjectId tempId = new ObjectId(id);
+    System.out.println(tempId);
+    User existingUser = repository.findByName(username).get();
+    // if (repository.findById(id).isPresent()) {
+    //   System.out.println("isPRESENT()\n" + repository.findById(id).toString());
+    //   existingUser = repository.findById(id).get();
+    // } else {
+    //   System.out.println(repository.findById(id));
+    //   return f.format("things fucked up yo", HttpStatus.CONFLICT);
+    // }
+    // existingUser.setId(tempId);
+    System.out.println(existingUser.toString());
+
+    if (user.getName() != null) {
+      existingUser.setName(s.sanitize(user.getName()));
+    }
+    if (user.getPassword() != null) {
+      existingUser.setPassword(encoder.encode(s.sanitize(user.getPassword())));
+    }
+    if (user.getEmail() != null) {
+      existingUser.setEmail(s.sanitize(user.getEmail()));
+    }
+    try {
+      repository.save(existingUser);
+      return f.format("user " + username + " updated", HttpStatus.OK);
+    } catch (Exception e) {
+      return f.format("could nout update user", HttpStatus.BAD_REQUEST);
+    }
   }
 
-  public String deleteUser(String id) {
-    repository.deleteById(id);
-    return "user deleted with id " + id;
-  }
-
-  @PostConstruct
-  private void initAdmin() {
-    if (repository.findByName("admin").isEmpty()) {
-      User admin = new User("admin", "admin@admin.com", "root", "admin");
-      repository.save(admin);
+  public ResponseEntity<Object> deleteUser(String id) {
+    String clean = s.sanitize(id);
+    if (repository.findById(clean).isPresent()) {
+      repository.deleteById(clean);
+      return f.format("user deleted by id:", clean, HttpStatus.OK);
+    } else {
+      return f.format("user not found by id:", clean, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -98,5 +163,13 @@ public class UserService implements UserDetailsService {
     Optional<User> user = repository.findByName(username);
     if (user.isPresent()) return user.get();
     throw new UsernameNotFoundException("user not found");
+  }
+
+  @PostConstruct
+  private void initAdmin() {
+    if (repository.findByName("admin").isEmpty()) {
+      User admin = new User("admin", "admin@admin.com", encoder.encode("root"), "user,admin");
+      repository.save(admin);
+    }
   }
 }

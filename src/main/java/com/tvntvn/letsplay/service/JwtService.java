@@ -1,24 +1,26 @@
 package com.tvntvn.letsplay.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-// import org.springframework.beans.factory.annotation.Value;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtService {
 
-  // @Value("${letsplay.app.jwtSecret}")
-  public static String SECRET = "5b48599ef10d6f1fc652bc3245d4ae815f495a6e60942c49483200e0970c88ac";
+  @Value("${letsplay.app.jwtSecret}")
+  private String SECRET;
 
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
     final Claims claims = extractAllClaims(token);
@@ -49,11 +51,9 @@ public class JwtService {
   public String generateToken(String username) {
     Map<String, Object> claims = new HashMap<>();
     return createToken(claims, username);
-    // return createToken(username);
   }
 
   private String createToken(Map<String, Object> claims, String username) {
-    // private String createToken(String username) {
     return Jwts.builder()
         .setClaims(claims)
         .setSubject(username)

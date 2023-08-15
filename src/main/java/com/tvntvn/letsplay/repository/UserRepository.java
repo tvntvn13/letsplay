@@ -1,8 +1,10 @@
 package com.tvntvn.letsplay.repository;
 
-import com.tvntvn.letsplay.model.User;
 import java.util.Optional;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.tvntvn.letsplay.model.User;
 
 public interface UserRepository extends MongoRepository<User, String> {
 

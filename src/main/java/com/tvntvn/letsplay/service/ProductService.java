@@ -1,15 +1,17 @@
 package com.tvntvn.letsplay.service;
 
-import com.tvntvn.letsplay.model.Product;
-import com.tvntvn.letsplay.repository.ProductRepository;
-// import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Random;
 // import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+// import jakarta.annotation.PostConstruct;
+import com.tvntvn.letsplay.model.Product;
+import com.tvntvn.letsplay.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -38,7 +40,6 @@ public class ProductService {
   }
 
   public Product addProduct(Product product) {
-    // product.setId(UUID.randomUUID().toString().split("-")[0]);
     return repository.save(product);
   }
 

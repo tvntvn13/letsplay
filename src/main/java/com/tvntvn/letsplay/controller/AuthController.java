@@ -1,11 +1,8 @@
 package com.tvntvn.letsplay.controller;
 
-import com.tvntvn.letsplay.model.AuthRequest;
-import com.tvntvn.letsplay.model.User;
-import com.tvntvn.letsplay.repository.UserRepository;
-import com.tvntvn.letsplay.service.JwtService;
-import com.tvntvn.letsplay.service.UserService;
-import com.tvntvn.letsplay.util.InputSanitizer;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tvntvn.letsplay.model.AuthRequest;
+import com.tvntvn.letsplay.model.SignupRequest;
+import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.repository.UserRepository;
+import com.tvntvn.letsplay.service.JwtService;
+// import com.tvntvn.letsplay.service.UserService;
+import com.tvntvn.letsplay.util.InputSanitizer;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
@@ -27,7 +32,8 @@ public class AuthController {
   @Autowired PasswordEncoder encoder;
 
   // @Autowired private UserService userService;
-  @Autowired private UserService userService;
+
+  @Autowired private InputSanitizer s;
 
   @Autowired private UserRepository userRepository;
 
@@ -36,28 +42,31 @@ public class AuthController {
   @Autowired private JwtService jwtService;
 
   @PostMapping("/signup")
-  public ResponseEntity<String> addNewUser(@RequestBody User user) {
-    String cleanName = InputSanitizer.sanitize(user.getName());
-    String cleanEmail = InputSanitizer.sanitize(user.getEmail());
-    String cleanPassword = InputSanitizer.sanitize(user.getPassword());
+  public ResponseEntity<Object> addNewUser(@RequestBody SignupRequest user) {
 
-    if (userService.findUserByName(cleanName).isPresent()) {
-      return new ResponseEntity<String>("user already exists", HttpStatus.CONFLICT);
+    System.out.println(user.toString());
+    String cleanName = s.sanitize(user.getName());
+    String cleanEmail = s.sanitize(user.getEmail());
+    String cleanPassword = s.sanitize(user.getPassword());
+
+    if (userRepository.findByName(cleanName).isPresent()) {
+      return new ResponseEntity<Object>("user already exists", HttpStatus.CONFLICT);
     }
-    if (userService.findUserByEmail(cleanEmail).isPresent()) {
-      return new ResponseEntity<String>("email already taken", HttpStatus.CONFLICT);
+    if (userRepository.findByEmail(cleanEmail).isPresent()) {
+      return new ResponseEntity<Object>("email already taken", HttpStatus.CONFLICT);
     }
     User newUser = new User(cleanName, cleanEmail, encoder.encode(cleanPassword));
     newUser.setRole("user");
     userRepository.save(newUser);
-    return new ResponseEntity<String>(
+    return new ResponseEntity<Object>(
         "user: " + cleanName + " registered succesfully", HttpStatus.CREATED);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<String> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-    String cleanName = InputSanitizer.sanitize(authRequest.getUsername());
-    String cleanPassword = InputSanitizer.sanitize(authRequest.getPassword());
+  public ResponseEntity<Object> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+    String cleanName = s.sanitize(authRequest.getUsername());
+    String cleanPassword = s.sanitize(authRequest.getPassword());
+    Map<String, String> response = new HashMap<>();
     try {
       Authentication authentication =
           authenticationManager.authenticate(
@@ -65,15 +74,15 @@ public class AuthController {
       System.out.println(authentication.toString());
       if (authentication.isAuthenticated()) {
         System.out.println("authenticated!");
-        return new ResponseEntity<>(
-            jwtService.generateToken(authRequest.getUsername()), HttpStatus.OK);
+        response.put("status", "succesfully logged in");
+        response.put("payload", jwtService.generateToken(cleanName));
+        return new ResponseEntity<>(response, HttpStatus.OK);
       } else {
         System.out.println("something went wrong");
-        return new ResponseEntity<String>("invalid username or password", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<Object>("invalid username or password", HttpStatus.BAD_REQUEST);
       }
     } catch (Exception e) {
-      return new ResponseEntity<String>(
-          "bad request, pls try again, " + e.getMessage(), HttpStatus.BAD_REQUEST);
+      return new ResponseEntity<Object>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
   }
 }
