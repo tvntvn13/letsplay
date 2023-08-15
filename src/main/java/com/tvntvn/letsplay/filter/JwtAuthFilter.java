@@ -11,21 +11,21 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
-import com.tvntvn.letsplay.service.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
 @Order(1)
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
   @Autowired private JwtService jwtService;
 
-  @Autowired private UserService userService;
+  @Autowired private UserRepository userRepository;
 
   @Override
   protected void doFilterInternal(
@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      UserDetails userDetails = userService.loadUserByUsername(username);
+      UserDetails userDetails = userRepository.findByName(username).get();
       if (jwtService.validateToken(token, userDetails)) {
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(

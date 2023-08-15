@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,16 +22,35 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class UserService implements UserDetailsService {
+  private UserRepository repository;
+  private InputSanitizer s;
+  private JwtService jwtService;
+  private ResponseFormatter formatter;
 
-  @Autowired private UserRepository repository;
+  @Autowired
+  public void setRepository(UserRepository repository) {
+    this.repository = repository;
+  }
 
-  @Autowired private InputSanitizer s;
+  @Autowired
+  public void setS(InputSanitizer s) {
+    this.s = s;
+  }
 
-  @Autowired private PasswordEncoder encoder;
+  @Autowired
+  private PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-  @Autowired private JwtService jwtService;
+  @Autowired
+  public void setJwtService(JwtService jwtService) {
+    this.jwtService = jwtService;
+  }
 
-  @Autowired private ResponseFormatter formatter;
+  @Autowired
+  public void setFormatter(ResponseFormatter formatter) {
+    this.formatter = formatter;
+  }
 
   public ResponseEntity<Object> addAdminRights(String name) {
     String clean = s.sanitize(name);
@@ -101,7 +121,7 @@ public class UserService implements UserDetailsService {
       existingUser.setName(s.sanitize(user.getName()));
     }
     if (user.getPassword() != null) {
-      existingUser.setPassword(encoder.encode(s.sanitize(user.getPassword())));
+      existingUser.setPassword(encoder().encode(s.sanitize(user.getPassword())));
     }
     if (user.getEmail() != null) {
       existingUser.setEmail(s.sanitize(user.getEmail()));
@@ -134,7 +154,7 @@ public class UserService implements UserDetailsService {
   @PostConstruct
   private void initAdmin() {
     if (repository.findByName("admin").isEmpty()) {
-      User admin = new User("admin", "admin@admin.com", encoder.encode("root"), "user,admin");
+      User admin = new User("admin", "admin@admin.com", encoder().encode("root"), "user,admin");
       repository.save(admin);
     }
   }
