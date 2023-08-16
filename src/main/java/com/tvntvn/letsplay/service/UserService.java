@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,18 @@ public class UserService implements UserDetailsService {
   private InputSanitizer s;
   private JwtService jwtService;
   private ResponseFormatter formatter;
+
+  @Value("${adminName}")
+  private String adminName;
+
+  @Value("${adminPassword}")
+  private String adminPassword;
+
+  @Value("${adminEmail}")
+  private String adminEmail;
+
+  @Value("${adminRoles}")
+  private String adminRoles;
 
   @Autowired
   public void setRepository(UserRepository repository) {
@@ -54,8 +67,8 @@ public class UserService implements UserDetailsService {
 
   public ResponseEntity<Object> addAdminRights(String name) {
     String clean = s.sanitize(name);
-    if (repository.findByName(clean).isPresent()) {
-      User existingUser = repository.findByName(clean).get();
+    User existingUser = repository.findByName(clean).orElse(null);
+    if (existingUser != null) {
       existingUser.setRole("user,admin");
       return formatter.format(
           "admin rights granted to user:", existingUser.getName(), HttpStatus.OK);
@@ -66,8 +79,8 @@ public class UserService implements UserDetailsService {
 
   public ResponseEntity<Object> removeAdminRights(String name) {
     String clean = s.sanitize(name);
-    if (repository.findByName(clean).isPresent()) {
-      User existingUser = repository.findByName(clean).get();
+    User existingUser = repository.findByName(clean).orElse(null);
+    if (existingUser != null) {
       existingUser.setRole("user");
       return formatter.format(
           "admin rights removed from user:", existingUser.getName(), HttpStatus.OK);
@@ -82,17 +95,19 @@ public class UserService implements UserDetailsService {
 
   public ResponseEntity<Object> findUserById(String id) {
     String clean = s.sanitize(id);
-    if (repository.findById(clean).isPresent()) {
-      return formatter.format(repository.findById(clean).get(), HttpStatus.OK);
+    User user = repository.findById(clean).orElse(null);
+    if (user != null) {
+      return formatter.format(user, HttpStatus.OK);
     } else {
-      return formatter.format("user not found with id:", clean, HttpStatus.NO_CONTENT);
+      return formatter.format("user not found with id:", clean, HttpStatus.NOT_FOUND);
     }
   }
 
   public ResponseEntity<Object> findUserByName(String name) {
     String clean = s.sanitize(name);
-    if (repository.findByName(clean).isPresent()) {
-      return formatter.format(repository.findByName(clean).get(), HttpStatus.OK);
+    User user = repository.findByName(clean).orElse(null);
+    if (user != null) {
+      return formatter.format(user, HttpStatus.OK);
     } else {
       return formatter.format("user not found by name:", clean, HttpStatus.NOT_FOUND);
     }
@@ -100,17 +115,21 @@ public class UserService implements UserDetailsService {
 
   public ResponseEntity<Object> findUserByEmail(String email) {
     String clean = s.sanitize(email);
-    if (repository.findByEmail(clean).isPresent()) {
-      return formatter.format(repository.findByEmail(clean).get(), HttpStatus.OK);
+    User user = repository.findByEmail(clean).orElse(null);
+    if (user != null) {
+      return formatter.format(user, HttpStatus.OK);
     } else {
       return formatter.format("user not found by email:", clean, HttpStatus.NOT_FOUND);
     }
   }
 
+  // TODO ADD EMAIL VALIDATION
   public ResponseEntity<Object> updateUser(User user, String token) {
     String username = jwtService.extractUsername(token);
-    String id = repository.findByName(username).get().getId();
-    User existingUser = repository.findByName(username).get();
+    User existingUser = repository.findByName(username).orElse(null);
+    String id = existingUser != null ? existingUser.getId() : null;
+    if (id == null || existingUser == null)
+      return formatter.format("bad request", HttpStatus.BAD_REQUEST);
     if (repository.findById(id).isPresent()) {
       existingUser = repository.findById(id).get();
     } else {
@@ -134,9 +153,10 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  public ResponseEntity<Object> deleteUser(String id) {
-    String clean = s.sanitize(id);
-    if (repository.findById(clean).isPresent()) {
+  public ResponseEntity<Object> deleteUser(String name) {
+    String clean = s.sanitize(name);
+    User user = repository.findByName(clean).orElse(null);
+    if (user != null) {
       repository.deleteById(clean);
       return formatter.format("user deleted by id:", clean, HttpStatus.OK);
     } else {

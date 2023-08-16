@@ -37,3 +37,6 @@ application.properties
 
 ## keystore ##
 *.jks
+
+## notes ##
+todos.txt

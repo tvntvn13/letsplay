@@ -23,6 +23,8 @@ import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.util.InputSanitizer;
 
+import jakarta.validation.Valid;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
@@ -39,7 +41,7 @@ public class AuthController {
   @Autowired private JwtService jwtService;
 
   @PostMapping("/signup")
-  public ResponseEntity<Object> addNewUser(@RequestBody SignupRequest user) {
+  public ResponseEntity<Object> addNewUser(@RequestBody @Valid SignupRequest user) {
 
     System.out.println(user.toString());
     String cleanName = s.sanitize(user.getName());

@@ -1,14 +1,11 @@
 package com.tvntvn.letsplay.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tvntvn.letsplay.model.Product;
+import com.tvntvn.letsplay.model.ProductRequest;
 import com.tvntvn.letsplay.service.ProductService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,39 +27,45 @@ public class ProductController {
   @Autowired private ProductService service;
 
   @PostMapping
-  @PreAuthorize("hasAutority('user)")
+  @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> createProduct(
-      @RequestHeader("Authorization") String auth, @RequestBody Product user) {
+      @RequestHeader("Authorization") String auth, @Valid @RequestBody ProductRequest product) {
     String token = auth.substring(7);
-    return service.addProduct(user, token);
+    return service.addProduct(product, token);
   }
 
   @GetMapping
-  public List<Product> getAllProducts() {
+  public ResponseEntity<Object> getAllProducts() {
     return service.findAllProducts();
   }
 
   @GetMapping(params = "productId")
-  @PreAuthorize("hasAutority('user)")
+  @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> getProduct(@RequestParam String productId) {
     return service.findProductById(productId);
   }
 
   @GetMapping(params = "name")
-  @PreAuthorize("hasAutority('user)")
-  public List<Product> getProductByName(@RequestParam String name) {
+  @PreAuthorize("hasAuthority('user')")
+  public ResponseEntity<Object> getProductByName(@RequestParam String name) {
     return service.findProductByName(name);
   }
 
-  @PutMapping("/update")
-  @PreAuthorize("hasAutority('user')")
-  public ResponseEntity<Object> modifyProduct(@RequestBody Product product) {
-    return service.updateProduct(product);
+  @PutMapping(params = "name")
+  @PreAuthorize("hasAuthority('user')")
+  public ResponseEntity<Object> modifyProduct(
+      @RequestHeader("Authorization") String header,
+      @RequestParam String name,
+      @RequestBody Product product) {
+    String token = header.substring(7);
+    return service.updateProduct(token, name, product);
   }
 
-  @DeleteMapping("/{productId}")
-  @PreAuthorize("hasAutority('admin')")
-  public ResponseEntity<Object> deleteProduct(@PathVariable String productId) {
-    return service.deleteProduct(productId);
+  @DeleteMapping(params = "name")
+  @PreAuthorize("hasAnyAuthority('admin','user')")
+  public ResponseEntity<Object> deleteProduct(
+      @RequestHeader("Authorization") String header, @RequestParam String name) {
+    String token = header.substring(7);
+    return service.deleteProduct(name, token);
   }
 }

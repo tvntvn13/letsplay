@@ -25,10 +25,24 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class User implements UserDetails {
   @Id private String id;
-  @Field @NotBlank private String name;
-  @Field @NotBlank @Email private String email;
-  @Field @JsonIgnore @NotBlank private String password;
-  @Field @NotBlank private String role;
+
+  @Field
+  @NotBlank(message = "name cannot be empty")
+  private String name;
+
+  @Field
+  @NotBlank(message = "email cannot be empty")
+  @Email(message = "email is invalid")
+  private String email;
+
+  @Field
+  @JsonIgnore
+  @NotBlank(message = "password cannot be empty")
+  private String password;
+
+  @Field
+  @NotBlank(message = "role cannot be empty")
+  private String role;
 
   public User(String name, String email, String password) {
     this.name = name;
@@ -46,6 +60,17 @@ public class User implements UserDetails {
   @Override
   @JsonIgnore
   public Collection<? extends GrantedAuthority> getAuthorities() {
+    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+    String[] split = getRole().split(",");
+
+    for (String auth : split) {
+      authorities.add(new SimpleGrantedAuthority(auth));
+    }
+    return authorities;
+  }
+
+  @JsonIgnore
+  public List<SimpleGrantedAuthority> getRoles() {
     List<SimpleGrantedAuthority> authorities = new ArrayList<>();
     String[] split = getRole().split(",");
 

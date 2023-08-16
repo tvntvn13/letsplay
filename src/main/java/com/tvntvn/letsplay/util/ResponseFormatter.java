@@ -1,5 +1,7 @@
 package com.tvntvn.letsplay.util;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -26,5 +28,9 @@ public class ResponseFormatter {
 
   public ResponseEntity<Object> format(Product product, HttpStatus status) {
     return new ResponseEntity<Object>(product, status);
+  }
+
+  public ResponseEntity<Object> format(List<Product> list, HttpStatus status) {
+    return new ResponseEntity<Object>(list, status);
   }
 }

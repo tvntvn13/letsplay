@@ -19,7 +19,7 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-  @Value("${letsplay.app.jwtSecret}")
+  @Value("${letsplay.jwtSecret}")
   private String SECRET;
 
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
