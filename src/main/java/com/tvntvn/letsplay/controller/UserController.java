@@ -58,7 +58,7 @@ public class UserController {
     return service.findUserByEmail(email);
   }
 
-  @PutMapping("/update")
+  @PutMapping
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> modifyUser(
       @RequestHeader("Authorization") String header, @RequestBody User user) {

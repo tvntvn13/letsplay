@@ -10,7 +10,7 @@ public class AuthRequest {
   @Setter
   @Getter
   @NotEmpty(message = "username cannot be empty")
-  private String username;
+  private String name;
 
   @Setter
   @Getter

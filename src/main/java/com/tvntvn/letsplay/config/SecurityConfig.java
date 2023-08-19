@@ -1,6 +1,7 @@
 package com.tvntvn.letsplay.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,8 +36,24 @@ public class SecurityConfig {
 
   @Autowired private ExceptionFilter exceptionFilter;
 
+  @Value("${server.ssl.trust-store}")
+  private String trustStore;
+
+  @Value("${server.ssl.keystore}")
+  private String keystore;
+
+  @Value("${server.ssl.keystore-type}")
+  private String keystoreType;
+
+  @Value("${server.ssl.trust-store-type}")
+  private String trustStoreType;
+
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    System.out.println("keystore\n" + keystore);
+    System.out.println("keystoreType\n" + keystoreType);
+    System.out.println("trustStore\n" + trustStore);
+    System.out.println("trustStoreType\n" + trustStoreType);
     return http.csrf(csrf -> csrf.disable())
         .authenticationProvider(authenticationProvider())
         .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

@@ -104,6 +104,7 @@ public class ProductService {
   public ResponseEntity<Object> updateProduct(String token, String name, Product product) {
     String clean = input.sanitize(name);
     Product existingProduct = repository.findByName(clean).orElse(null);
+    System.out.println(existingProduct.toString());
     if(clean.equals("") || existingProduct == null) return formatter.format("product not found with name "+clean, HttpStatus.NOT_FOUND);
 
     String userName = jwtService.extractUsername(token);
@@ -116,15 +117,21 @@ public class ProductService {
     String oldDescription = existingProduct.getDescription();
     Double oldPrice = existingProduct.getPrice();
 
-    Product newProduct = new Product();
     String userId = owner.getId();
-    if(product.getName() == null) newProduct.setName(oldName);
-    if(product.getPrice() == null) newProduct.setPrice(oldPrice);
-    if(product.getDescription() == null) newProduct.setDescription(oldDescription);
-    newProduct.setUserId(userId);
+    String newName = product.getName();
+    Double newPrice = product.getPrice();
+    String newDescription = product.getDescription();
+    if(newName == null) existingProduct.setName(oldName);
+    existingProduct.setName(newName);
+    if(newPrice == null) existingProduct.setPrice(oldPrice);
+    existingProduct.setPrice(newPrice);
+    if(newDescription == null) existingProduct.setDescription(oldDescription);
+    existingProduct.setDescription(newDescription);
+    existingProduct.setUserId(userId);
+    System.out.println(existingProduct.toString());
     
-    repository.save(newProduct);
-    return formatter.format("product "+oldName+" updated", HttpStatus.OK);
+    repository.save(existingProduct);
+    return formatter.format("product "+existingProduct.getName()+" updated", HttpStatus.OK);
   }
 
   public ResponseEntity<Object> deleteProduct(String name, String token) {

@@ -63,7 +63,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<Object> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-    String cleanName = s.sanitize(authRequest.getUsername());
+    String cleanName = s.sanitize(authRequest.getName());
     String cleanPassword = s.sanitize(authRequest.getPassword());
     Map<String, String> response = new HashMap<>();
     try {
@@ -81,7 +81,7 @@ public class AuthController {
         return new ResponseEntity<Object>("invalid username or password", HttpStatus.BAD_REQUEST);
       }
     } catch (Exception e) {
-      return new ResponseEntity<Object>(e.getMessage(), HttpStatus.BAD_REQUEST);
+      return new ResponseEntity<Object>(e.getLocalizedMessage(), HttpStatus.UNAUTHORIZED);
     }
   }
 }

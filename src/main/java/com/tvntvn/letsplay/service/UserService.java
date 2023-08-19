@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
+import com.tvntvn.letsplay.util.EmailValidatorService;
 import com.tvntvn.letsplay.util.InputSanitizer;
 import com.tvntvn.letsplay.util.ResponseFormatter;
 
@@ -24,9 +25,16 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class UserService implements UserDetailsService {
   private UserRepository repository;
-  private InputSanitizer s;
+
+  private InputSanitizer input;
+
+  private PasswordEncoder encoder = new BCryptPasswordEncoder();
+
   private JwtService jwtService;
+
   private ResponseFormatter formatter;
+
+  @Autowired private EmailValidatorService validator;
 
   @Value("${adminName}")
   private String adminName;
@@ -46,13 +54,8 @@ public class UserService implements UserDetailsService {
   }
 
   @Autowired
-  public void setS(InputSanitizer s) {
-    this.s = s;
-  }
-
-  @Autowired
-  private PasswordEncoder encoder() {
-    return new BCryptPasswordEncoder();
+  public void setInput(InputSanitizer inputSanitizer) {
+    this.input = inputSanitizer;
   }
 
   @Autowired
@@ -66,7 +69,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> addAdminRights(String name) {
-    String clean = s.sanitize(name);
+    String clean = input.sanitize(name);
     User existingUser = repository.findByName(clean).orElse(null);
     if (existingUser != null) {
       existingUser.setRole("user,admin");
@@ -78,7 +81,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> removeAdminRights(String name) {
-    String clean = s.sanitize(name);
+    String clean = input.sanitize(name);
     User existingUser = repository.findByName(clean).orElse(null);
     if (existingUser != null) {
       existingUser.setRole("user");
@@ -94,7 +97,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> findUserById(String id) {
-    String clean = s.sanitize(id);
+    String clean = input.sanitize(id);
     User user = repository.findById(clean).orElse(null);
     if (user != null) {
       return formatter.format(user, HttpStatus.OK);
@@ -104,7 +107,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> findUserByName(String name) {
-    String clean = s.sanitize(name);
+    String clean = input.sanitize(name);
     User user = repository.findByName(clean).orElse(null);
     if (user != null) {
       return formatter.format(user, HttpStatus.OK);
@@ -114,7 +117,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> findUserByEmail(String email) {
-    String clean = s.sanitize(email);
+    String clean = input.sanitize(email);
     User user = repository.findByEmail(clean).orElse(null);
     if (user != null) {
       return formatter.format(user, HttpStatus.OK);
@@ -123,11 +126,11 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  // TODO ADD EMAIL VALIDATION
   public ResponseEntity<Object> updateUser(User user, String token) {
     String username = jwtService.extractUsername(token);
     User existingUser = repository.findByName(username).orElse(null);
     String id = existingUser != null ? existingUser.getId() : null;
+
     if (id == null || existingUser == null)
       return formatter.format("bad request", HttpStatus.BAD_REQUEST);
     if (repository.findById(id).isPresent()) {
@@ -137,13 +140,17 @@ public class UserService implements UserDetailsService {
     }
 
     if (user.getName() != null) {
-      existingUser.setName(s.sanitize(user.getName()));
+      existingUser.setName(input.sanitize(user.getName()));
     }
     if (user.getPassword() != null) {
-      existingUser.setPassword(encoder().encode(s.sanitize(user.getPassword())));
+      existingUser.setPassword(encoder.encode(input.sanitize(user.getPassword())));
     }
     if (user.getEmail() != null) {
-      existingUser.setEmail(s.sanitize(user.getEmail()));
+      if (validator.validate(input.sanitize(user.getEmail()))) {
+        existingUser.setEmail(input.sanitize(user.getEmail()));
+      } else {
+        return formatter.format("email invalid: " + user.getEmail(), HttpStatus.NOT_ACCEPTABLE);
+      }
     }
     try {
       repository.save(existingUser);
@@ -154,7 +161,7 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> deleteUser(String name) {
-    String clean = s.sanitize(name);
+    String clean = input.sanitize(name);
     User user = repository.findByName(clean).orElse(null);
     if (user != null) {
       repository.deleteById(clean);
@@ -174,7 +181,7 @@ public class UserService implements UserDetailsService {
   @PostConstruct
   private void initAdmin() {
     if (repository.findByName("admin").isEmpty()) {
-      User admin = new User("admin", "admin@admin.com", encoder().encode("root"), "user,admin");
+      User admin = new User("admin", "admin@admin.com", encoder.encode("root"), "user,admin");
       repository.save(admin);
     }
   }

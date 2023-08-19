@@ -4,7 +4,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 // import lombok.Builder;
 import lombok.Data;
@@ -16,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
-  @Id private String id;
+  @JsonIgnore @Id private String id;
 
   @Field
   @NotBlank(message = "name cannot be empty")
@@ -27,10 +30,11 @@ public class Product {
   private String description;
 
   @Field
-  @NotBlank(message = "price cannot be empty")
+  @NotNull(message = "price cannot be empty")
   private Double price;
 
   @Field
+  @JsonIgnore
   @NotBlank(message = "userId cannot empty")
   private String userId;
 }
