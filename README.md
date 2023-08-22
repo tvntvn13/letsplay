@@ -40,145 +40,338 @@
 #### Public
 
 - _**GET**_ Products
-  - GET request to _https://localhost:443/api/products_
-    - example with HTTPie:
-    ```bash
-    https get :443/api/products
-    ```
-    - **RESPONSE**:
-    ```JSON
-    [
-      {
-        "name": "best product",
-        "description": "this is awesome product",
-        "price": "420.99"
-      },
-      {
-        "name": "bad product",
-        "description": "this is not a great product",
-        "price": "12.49"
-      }
-    ]
-    ```
+- _https://localhost:443/api/products_
+- **RESPONSE**:
+
+```JSON
+"detail": "OK",
+"payload": [
+  {
+    "name": "best product",
+    "description": "this is awesome product",
+    "price": "420.99"
+  },
+  {
+    "name": "bad product",
+    "description": "this is not a great product",
+    "price": "12.49"
+  }
+],
+"status": 200
+```
 
 ---
 
 #### Authentication
 
 - _**POST**_ Signup
-  - Post request to _https://localhost:443/api/auth/signup_
-    - request body:
-    ```JSON
-    {
-      "name": "john",
-      "email": "john@johnmail.com",
-      "password": "sEcRe7pA5sW0rd"
-    }
-    ```
-    - example with HTTPie:
-    ```bash
-    https post :443/api/auth/signup \
-    name=john \
-    email=john@johnmail.com \
-    password=sEcRe7pA5sW0rd
-    ```
-    **required fields:** _name, email, password ( only alphanumerical with
-    reasonable lengths, **[3 - 30]** )_
-    - **RESPONSE**:
-      - success:
-        ```bash
-        "user: john registered succesfully"
-        ```
-      - error:
-        ```JSON
-        {
-          "detail": "Invalid request content.",
-          "instance": "/api/auth/signup",
-          "status": 400,
-          "title": "Bad Request",
-          "type": "about:blank"
-        }
-        ```
+- _https://localhost:443/api/auth/signup_
+- request body:
+
+```JSON
+{
+  "name": "john",
+  "email": "john@johnmail.com",
+  "password": "sEcRe7pA5sW0rd"
+}
+```
+
+**required fields:** _name **string**, email **string**, password **string**
+(only alphanumerical with reasonable lengths_ **[1]** )
+
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "Created",
+  "payload": "user john registered succesfully",
+  "status": 201
+}
+```
+
+- error:
+
+```JSON
+{
+  "detail": "Invalid request content.",
+  "instance": "/api/auth/signup",
+  "status": 400,
+  "title": "Bad Request",
+  "type": "about:blank"
+}
+```
+
 - **_POST_** login
-  - Post request to _https://localhost:443/api/auth/login
-    - request body:
-    ```JSON
-    {
-      "name": "john",
-      "password": "sEcRe7pA5sW0rd"
-    }
-    ```
-    - example with HTTPie:
-    ```bash
-    https post :443/api/auth/login \
-    name=john \
-    password=sEcRe7pA5sW0rd
-    ```
-    **required fields:** _name, password ( only alphanumerical with reasonable
-    lengths, **[3 - 30]** )_
-    - **RESPONSE**:
-      - success:
-        ```JSON
-        {
-          "payload": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huIiwiaWF0IjoxNjkyNDQzMzk3LCJleHAiOjE2OTI0NjEzOTd9.pLQeWfe09NCHiGoN1hYxEMaVHNQxhZcIQ7jBLrq3S9g",
-          "status": "succesfully logged in"
-        }
-        ```
-        - error:
-        ```JSON
-        {
-          "detail": "Failed to read request",
-          "instance": "/api/auth/login",
-          "status": 400,
-          "title": "Bad Request",
-          "type": "about:blank"
-        }
-        ```
+- _https://localhost:443/api/auth/login_
+- request body:
+
+```JSON
+{
+  "name": "john",
+  "password": "sEcRe7pA5sW0rd"
+}
+```
+
+**required fields:** _name **string**, password **string** ( only alphanumerical
+with reasonable lengths_ **[1]** )
+
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "OK",
+  "payload": "eyJhbGciOiJIUzI1NiJ9 ... ",
+  "status": 200
+}
+```
+
+- error:
+
+```JSON
+{
+  "detail": "Failed to read request",
+  "instance": "/api/auth/login",
+  "status": 400,
+  "title": "Bad Request",
+  "type": "about:blank"
+}
+```
 
 ---
 
 #### Registered user
 
-- **_POST_** Product
-  - Post request to _https://localhost:443/api/products_
-    - request body:
-    ```JSON
+- **_GET_** Users | get all the users
+- _https://localhost:443/api/users_
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "OK",
+  "payload": [
     {
-      "name": "Vaccuum cleaner PX3000",
-      "description": "the best vaccuum cleaner",
-      "price": 49.00
+      "email": "taneli@taneli.com",
+      "name": "taneli",
+      "role": "user"
+    },
+    {
+      "email": "test@gmail.com",
+      "name": "tester",
+      "role": "user"
+    },
+    {
+      "email": "obama@jmail.com",
+      "name": "obama",
+      "role": "user"
     }
-    ```
-    - example with HTTPie:
-    ```bash
-    https post :443/api/products \
-    name='Vacuum cleaner PX3000' \
-    description='the best vaccuum cleaner' \
-    price=49
-    ```
-    **required fields:** _name **string**, description **string**, price
-    **double** ( only alphanumerical with reasonable lengths, **[3 - 30]** )_
-    - **RESPONSE**:
-      - success:
-      ```JSON
-      {
-        "description": "the best vaccuum cleaner",
-        "name": "Vacuum cleaner PX3000",
-        "price": 49.0
-      }
-      ```
-      - error:
-      ```JSON
-      {
-        "detail": "Failed to read request",
-        "instance": "/api/auth/login",
-        "status": 400,
-        "title": "Bad Request",
-        "type": "about:blank"
-      }
-      ```
-      ```bash
-      name is already taken Vacuum cleaner PX3000
-      ```
+  ],
+  "status": 200
+}
+```
+
+- error:
+
+```JSON
+{
+  "error": "Forbidden",
+  "message": "Access Denied",
+  "path": "/api/users",
+  "status": 403,
+  "timestamp": "2023-08-22T15:21:24.548+00:00"
+}
+```
+
+- **_GET_** User | get user by name
+- _https://localhost:443/api/users?name=name_
+- **required parameter:** _name **string** (only alphanumerical with reasonable
+  lengths_ **[1]**)
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "OK",
+  "payload": {
+    "email": "taneli@taneli.com",
+    "name": "taneli",
+    "role": "user"
+  },
+  "status": 200
+}
+```
+
+- error:
+
+```JSON
+{
+  "error": "Forbidden",
+  "message": "Access Denied",
+  "path": "/api/users",
+  "status": 403,
+  "timestamp": "2023-08-22T15:21:24.548+00:00"
+}
+```
+
+```JSON
+{
+  "detail": "Not Found",
+  "payload": "user not found by name: name",
+  "status": 404
+}
+```
+
+---
+
+- **_POST_** Product | create a new product
+- _https://localhost:443/api/products_
+- request body:
+
+```JSON
+{
+  "name": "Vaccuum cleaner PX3000",
+  "description": "the best vaccuum cleaner",
+  "price": 49.00
+}
+```
+
+**required fields:** _name **string**, description **string**, price **double**
+( only alphanumerical with reasonable lengths_ **[1]** )
+
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "Created",
+  "payload": {
+    "description": "the best vaccuum cleaner",
+    "name": "Vacuum cleaner PX3000",
+    "price": 49.0
+  },
+  "status": 201
+}
+```
+
+- error:
+
+```JSON
+{
+  "detail": "Invalid request content.",
+  "instance": "/api/products",
+  "status": 400,
+  "title": "Bad Request",
+  "type": "about:blank"
+}
+```
+
+```JSON
+{
+  "detail": "Conflict",
+  "payload": "name is already taken Vacuum cleaner PX3000",
+  "status": 409
+}
+```
+
+---
+
+- **_PUT_** Product | update product
+- _https://localhost:443/api/products?name=name_
+- request body:
+
+```JSON
+{
+  "name": "Vaccuum cleaner PX4000",
+  "description": "not great vaccuum cleaner",
+  "price": 19.99
+}
+```
+
+```JSON
+{
+  "description": "not great vaccuum cleaner",
+  "price": 12.49
+}
+```
+
+```JSON
+{
+  "name": "new name"
+}
+```
+
+**required fields: at least one of these:** _name **string**, description
+**string**, price **double** ( only alphanumerical with reasonable lengths_
+**[1]** )
+
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "OK",
+  "payload": {
+    "description": "not great vaccuum cleaner",
+    "name": "Vacuum cleaner PX3000",
+    "price": 12.49
+  },
+  "status": 200
+}
+```
+
+- error:
+
+```JSON
+{
+  "detail": "Invalid request content.",
+  "instance": "/api/products",
+  "status": 400,
+  "title": "Bad Request",
+  "type": "about:blank"
+}
+```
+
+```JSON
+{
+  "detail": "Forbidden",
+  "payload": "you don't have rights to this product",
+  "status": 403
+}
+```
+
+---
+
+- **_DELETE_** Product | delete product
+- _https://localhost:443/api/products?name=name_
+- **RESPONSE**:
+- success:
+
+```JSON
+{
+  "detail": "OK",
+  "payload": "product <productname> deleted",
+  "status": 200
+}
+```
+
+- error:
+
+```JSON
+{
+  "detail": "Bad request",
+  "payload": "<productname> not found",
+  "status": 400
+}
+```
+
+```JSON
+{
+  "detail": "Forbidden",
+  "payload": "no rights for deleting product productname",
+  "status": 403
+}
+```
 
 ---
