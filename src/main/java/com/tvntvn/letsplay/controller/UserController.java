@@ -1,13 +1,12 @@
 package com.tvntvn.letsplay.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -22,7 +21,7 @@ import com.tvntvn.letsplay.service.UserService;
 import com.tvntvn.letsplay.util.InputSanitizer;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -36,7 +35,7 @@ public class UserController {
 
   @GetMapping
   @PreAuthorize("hasAuthority('user')")
-  public ResponseEntity<List<User>> getUsers() {
+  public ResponseEntity<Object> getUsers() {
     return service.findAllUsers();
   }
 
@@ -44,6 +43,14 @@ public class UserController {
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> getUserById(@RequestParam String id) {
     return service.findUserById(id);
+  }
+
+  @GetMapping(path = "/whoami")
+  @PreAuthorize("hasAuthority('user')")
+  public ResponseEntity<Object> getCurrentUser(@RequestHeader("Authorization") String header) {
+    String token = header.substring(7);
+    String username = jwtService.extractUsername(token);
+    return service.findUserByName(username);
   }
 
   @GetMapping(params = "name")
@@ -68,9 +75,25 @@ public class UserController {
   }
 
   @PreAuthorize("hasAuthority('admin')")
-  @DeleteMapping(params = "id")
-  public ResponseEntity<Object> deleteUser(@RequestParam String id) {
-    String clean = s.sanitize(id);
-    return service.deleteUser(clean);
+  @DeleteMapping(params = "name")
+  public ResponseEntity<Object> deleteUser(
+      @RequestHeader("Authorization") String header, @RequestParam String name) {
+    String token = header.substring(7);
+    String clean = s.sanitize(name);
+    return service.deleteUser(clean, token);
+  }
+
+  @PreAuthorize("hasAuthority('admin')")
+  @PostMapping(path = "/admin", params = "name")
+  public ResponseEntity<Object> addAdmin(@RequestParam String name) {
+    return service.addAdminRights(name);
+  }
+
+  @PreAuthorize("hasAuthority('admin')")
+  @DeleteMapping(path = "/admin", params = "name")
+  public ResponseEntity<Object> removeAdmin(
+      @RequestHeader("Authorization") String header, @RequestParam String name) {
+    String token = header.substring(7);
+    return service.removeAdminRights(name, token);
   }
 }

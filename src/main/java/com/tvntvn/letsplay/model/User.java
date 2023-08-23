@@ -13,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -24,25 +22,15 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class User implements UserDetails {
-  @Id private String id;
+  @JsonIgnore @Id private String id;
 
-  @Field
-  @NotBlank(message = "name cannot be empty")
-  private String name;
+  @Field private String name;
 
-  @Field
-  @NotBlank(message = "email cannot be empty")
-  @Email(message = "email is invalid")
-  private String email;
+  @Field private String email;
 
-  @Field
-  @JsonIgnore
-  @NotBlank(message = "password cannot be empty")
-  private String password;
+  @Field @JsonIgnore private String password;
 
-  @Field
-  @NotBlank(message = "role cannot be empty")
-  private String role;
+  @Field private String role;
 
   public User(String name, String email, String password) {
     this.name = name;

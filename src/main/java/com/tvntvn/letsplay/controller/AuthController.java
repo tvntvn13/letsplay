@@ -1,8 +1,5 @@
 package com.tvntvn.letsplay.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +19,11 @@ import com.tvntvn.letsplay.model.User;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.util.InputSanitizer;
+import com.tvntvn.letsplay.util.ResponseFormatter;
 
 import jakarta.validation.Valid;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -33,6 +31,8 @@ public class AuthController {
   @Autowired PasswordEncoder encoder;
 
   @Autowired private InputSanitizer s;
+
+  @Autowired private ResponseFormatter formatter;
 
   @Autowired private UserRepository userRepository;
 
@@ -49,39 +49,62 @@ public class AuthController {
     String cleanPassword = s.sanitize(user.getPassword());
 
     if (userRepository.findByName(cleanName).isPresent()) {
-      return new ResponseEntity<Object>("user already exists", HttpStatus.CONFLICT);
+      return formatter.format("user already exists", HttpStatus.CONFLICT);
     }
     if (userRepository.findByEmail(cleanEmail).isPresent()) {
-      return new ResponseEntity<Object>("email already taken", HttpStatus.CONFLICT);
+      return formatter.format("email already taken", HttpStatus.CONFLICT);
     }
     User newUser = new User(cleanName, cleanEmail, encoder.encode(cleanPassword));
     newUser.setRole("user");
     userRepository.save(newUser);
-    return new ResponseEntity<Object>(
-        "user: " + cleanName + " registered succesfully", HttpStatus.CREATED);
+    return formatter.format("user " + cleanName + " registered succesfully", HttpStatus.CREATED);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Object> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+  public ResponseEntity<Object> authenticateAndGetToken(
+      @RequestBody @Valid AuthRequest authRequest) {
+
     String cleanName = s.sanitize(authRequest.getName());
     String cleanPassword = s.sanitize(authRequest.getPassword());
-    Map<String, String> response = new HashMap<>();
+
     try {
       Authentication authentication =
           authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(cleanName, cleanPassword));
-      System.out.println(authentication.toString());
       if (authentication.isAuthenticated()) {
-        System.out.println("authenticated!");
-        response.put("status", "succesfully logged in");
-        response.put("payload", jwtService.generateToken(cleanName));
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return formatter.format(jwtService.generateToken(cleanName), HttpStatus.OK);
       } else {
-        System.out.println("something went wrong");
-        return new ResponseEntity<Object>("invalid username or password", HttpStatus.BAD_REQUEST);
+        return formatter.format("invalid username or password", HttpStatus.BAD_REQUEST);
       }
     } catch (Exception e) {
-      return new ResponseEntity<Object>(e.getLocalizedMessage(), HttpStatus.UNAUTHORIZED);
+      return formatter.format(e.getLocalizedMessage(), HttpStatus.UNAUTHORIZED);
     }
   }
+
+  // @GetMapping("/logout")
+  // @PreAuthorize("hasAuthority('user')")
+  // public ResponseEntity<Object> logoutAndExpireToken(
+  //     @RequestHeader("Authorization") String header) {
+  //   System.out.println("i got to here...");
+  //   String token = header.substring(7);
+  //   String username = jwtService.extractUsername(token);
+  //   User user = userRepository.findByName(username).get();
+  //   user.setCredendtialsNotExpired(false);
+  // try {
+  //   System.out.println("inside the try block");
+  //   Authentication authentication =
+  //       authenticationManager.authenticate(
+  //           new UsernamePasswordAuthenticationToken(username, password));
+  //   System.out.println("after authentication");
+  //   if (!authentication.isAuthenticated()) {
+  //     System.out.println("setting the authenticated to false now");
+  //     authentication.setAuthenticated(false);
+  //   }
+  //   // return formatter.format("geez", HttpStatus.I_AM_A_TEAPOT);
+  // } catch (Exception e) {
+  //   formatter.format("just catched this " + e.getLocalizedMessage(), HttpStatus.IM_USED);
+  // }
+  // String newToken = jwtService.revokeToken(username);
+  // return formatter.format("You are now logged out, " + username, HttpStatus.OK);
+  // }
 }

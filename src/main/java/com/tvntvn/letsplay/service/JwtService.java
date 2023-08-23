@@ -67,4 +67,15 @@ public class JwtService {
     byte[] keyBytes = Decoders.BASE64.decode(SECRET);
     return Keys.hmacShaKeyFor(keyBytes);
   }
+
+  public String revokeToken(String username) {
+    Map<String, Object> claims = new HashMap<>();
+    return Jwts.builder()
+        .setClaims(claims)
+        .setSubject(username)
+        .setIssuedAt(new Date(System.currentTimeMillis()))
+        .setExpiration(new Date(System.currentTimeMillis() + 20))
+        .signWith(getSignKey(), SignatureAlgorithm.HS256)
+        .compact();
+  }
 }

@@ -77,7 +77,7 @@
 ```
 
 **required fields:** _name **string**, email **string**, password **string**
-(only alphanumerical with reasonable lengths_ **[1]** )
+(only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 - **RESPONSE**:
 - success:
@@ -114,7 +114,7 @@
 ```
 
 **required fields:** _name **string**, password **string** ( only alphanumerical
-with reasonable lengths_ **[1]** )
+with reasonable lengths_ **[1]: (#reference)** )
 
 - **RESPONSE**:
 - success:
@@ -138,6 +138,8 @@ with reasonable lengths_ **[1]** )
   "type": "about:blank"
 }
 ```
+
+##### [[2]note](#reference2)
 
 ---
 
@@ -193,7 +195,7 @@ with reasonable lengths_ **[1]** )
 - **_GET_** | get user by name
 - _https://localhost:443/api/users?name=name_
 - **required parameter:** _name **string** (only alphanumerical with reasonable
-  lengths_ **[1]**)
+  lengths_ **[[1]](#reference)**)
 - **RESPONSE**:
 - success:
 
@@ -288,7 +290,7 @@ with reasonable lengths_ **[1]** )
 ```
 
 **required fields:** _name **string**, email **string**, password **string** (
-only alphanumerical with reasonable lengths_ **[1]** )
+only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 - **RESPONSE**:
 - success:
@@ -352,7 +354,7 @@ only alphanumerical with reasonable lengths_ **[1]** )
 ```
 
 **required fields:** _name **string**, description **string**, price **double**
-( only alphanumerical with reasonable lengths_ **[1]** )
+( only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 - **RESPONSE**:
 - success:
@@ -394,7 +396,7 @@ only alphanumerical with reasonable lengths_ **[1]** )
 - **_GET_** | get product by name
 - _https://localhost:443/api/products?name=name_
 - **required parameter:** _name **string** (only alphanumerical with reasonable
-  lengths_ **[1]**)
+  lengths_ **[[1]](#reference)**)
 - **RESPONSE**:
 - success:
 
@@ -433,7 +435,7 @@ only alphanumerical with reasonable lengths_ **[1]** )
 - **_GET_** | get product by owner
 - _https://localhost:443/api/products?owner=owner_
 - **required parameter:** _owner **string** (only alphanumerical with reasonable
-  lengths_ **[1]**)
+  lengths_ **[[1]](#reference)**)
 - **RESPONSE**:
 - success:
 
@@ -517,7 +519,7 @@ only alphanumerical with reasonable lengths_ **[1]** )
 - **_PUT_** | update product
 - _https://localhost:443/api/products?name=name_
 - **required parameter:** _name **string** (only alphanumerical with reasonable
-  lengths_ **[1]**)
+  lengths_ **[[1]](#reference)**)
 - request body: _(at least one field is required)_
 
 ```JSON
@@ -543,7 +545,7 @@ only alphanumerical with reasonable lengths_ **[1]** )
 
 **required fields: at least one of these:** _name **string**, description
 **string**, price **double** ( only alphanumerical with reasonable lengths_
-**[1]** )
+**[[1]](#reference)** )
 
 - **RESPONSE**:
 - success:
@@ -729,11 +731,13 @@ only alphanumerical with reasonable lengths_ **[1]** )
 
 ---
 
+<a id="reference"></a>
+
 ##### notes:
 
 ---
 
-[1] : reasonable lenghts are:
+###### [1]: reasonable lenghts are:
 
 ##### _USERS_:
 
@@ -747,4 +751,17 @@ only alphanumerical with reasonable lengths_ **[1]** )
 - description: 3 - 70
 - price: 0 - 1.79769313486231570e+308d
 
----
+<a id="reference2"></a>
+
+###### [2]: notice
+
+#### _JWT-Authentication:_
+
+- after you login, you will receive a token. This will have to be attached to
+  the header of each subsequent request, using the "Authorization: Bearer"
+  pattern.
+
+#### _SSL-verification:_
+
+- due to the certificate beign self signed, you need to disable ssl-verification
+  on your API-client to make requests to the API.

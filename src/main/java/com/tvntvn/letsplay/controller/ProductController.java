@@ -16,15 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tvntvn.letsplay.model.Product;
 import com.tvntvn.letsplay.model.ProductRequest;
+import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.service.ProductService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin
 @RequestMapping("api/products")
 public class ProductController {
+
   @Autowired private ProductService service;
+
+  @Autowired private JwtService jwtService;
 
   @PostMapping
   @PreAuthorize("hasAuthority('user')")
@@ -39,10 +43,19 @@ public class ProductController {
     return service.findAllProducts();
   }
 
-  @GetMapping(params = "productId")
+  @GetMapping(path = "/myproducts")
   @PreAuthorize("hasAuthority('user')")
-  public ResponseEntity<Object> getProduct(@RequestParam String productId) {
-    return service.findProductById(productId);
+  public ResponseEntity<Object> getCurrentUsersProducts(
+      @RequestHeader("Authorization") String header) {
+    String token = header.substring(7);
+    String username = jwtService.extractUsername(token);
+    return service.findAllByOwner(username);
+  }
+
+  @GetMapping(params = "owner")
+  @PreAuthorize("hasAuthority('user')")
+  public ResponseEntity<Object> getProductByUserName(@RequestParam String owner) {
+    return service.findAllByOwner(owner);
   }
 
   @GetMapping(params = "name")

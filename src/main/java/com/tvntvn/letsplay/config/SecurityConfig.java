@@ -65,12 +65,19 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup")
                     .permitAll()
+                    // .requestMatchers(HttpMethod.GET, "/api/auth/login")
+                    // .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products")
                     .permitAll()
                     .requestMatchers("/api/users", "/api/users/**", "/api/products/**")
                     .authenticated()
                     .anyRequest()
                     .permitAll())
+        // .logout(
+        //     logout ->
+        //         logout
+        //             .logoutUrl("api/auth/logout")
+        //             .addLogoutHandler(new SecurityContextLogoutHandler()))
         .build();
   }
 

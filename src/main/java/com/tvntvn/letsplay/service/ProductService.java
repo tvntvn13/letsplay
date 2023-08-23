@@ -74,13 +74,26 @@ public class ProductService {
     newProduct.setUserId(userId);
     repository.save(newProduct);
 
-    return formatter.format(repository.save(newProduct),HttpStatus.OK);
+    return formatter.format(repository.save(newProduct),HttpStatus.CREATED);
   }
 
     public ResponseEntity<Object> findAllProducts() {
     List<Product> products = repository.findAll();
     if(products.isEmpty()) return formatter.format("no products were found", HttpStatus.NO_CONTENT);
-    return formatter.format(products, HttpStatus.OK);
+    return formatter.formatProductList(products, HttpStatus.OK);
+  }
+
+  public ResponseEntity<Object> findAllByOwner(String ownerName){
+    String clean = input.sanitize(ownerName);
+    User owner = userRepository.findByName(clean).orElse(null);
+    if(owner == null){
+      return formatter.format("no user found by name: "+clean, HttpStatus.NOT_FOUND);
+    }
+    List<Product> usersProducts = repository.findAllByUserId(owner.getId());
+    if(owner == null || !owner.getName().equals(ownerName) || usersProducts.isEmpty()){
+      return formatter.format("no products found for user: "+clean, HttpStatus.NOT_FOUND);
+    }
+    return formatter.formatProductList(usersProducts, HttpStatus.OK);
   }
 
   public ResponseEntity<Object> findProductById(String id) {
@@ -104,13 +117,13 @@ public class ProductService {
   public ResponseEntity<Object> updateProduct(String token, String name, Product product) {
     String clean = input.sanitize(name);
     Product existingProduct = repository.findByName(clean).orElse(null);
-    System.out.println(existingProduct.toString());
     if(clean.equals("") || existingProduct == null) return formatter.format("product not found with name "+clean, HttpStatus.NOT_FOUND);
 
+    String productOwnerUserId = existingProduct.getUserId();
     String userName = jwtService.extractUsername(token);
     User owner = userRepository.findByName(userName).orElse(null);
-    if(userName.equals("") || owner == null){
-      return formatter.format("bad credentials", HttpStatus.FORBIDDEN);
+    if(!productOwnerUserId.equals(owner.getId())) {
+      return formatter.format("you don't have rights to this product", HttpStatus.FORBIDDEN);
     }
 
     String oldName = existingProduct.getName();
@@ -121,17 +134,24 @@ public class ProductService {
     String newName = product.getName();
     Double newPrice = product.getPrice();
     String newDescription = product.getDescription();
-    if(newName == null) existingProduct.setName(oldName);
-    existingProduct.setName(newName);
-    if(newPrice == null) existingProduct.setPrice(oldPrice);
-    existingProduct.setPrice(newPrice);
-    if(newDescription == null) existingProduct.setDescription(oldDescription);
-    existingProduct.setDescription(newDescription);
+    if(newName == null){
+      existingProduct.setName(oldName);
+    }else{
+      existingProduct.setName(newName);
+    }
+    if(newPrice == null){
+      existingProduct.setPrice(oldPrice);
+    } else {
+      existingProduct.setPrice(newPrice);
+    }
+    if(newDescription == null){
+      existingProduct.setDescription(oldDescription);
+    } else {
+      existingProduct.setDescription(newDescription);
+    }
     existingProduct.setUserId(userId);
-    System.out.println(existingProduct.toString());
-    
     repository.save(existingProduct);
-    return formatter.format("product "+existingProduct.getName()+" updated", HttpStatus.OK);
+    return formatter.format(existingProduct, HttpStatus.OK);
   }
 
   public ResponseEntity<Object> deleteProduct(String name, String token) {
@@ -144,7 +164,7 @@ public class ProductService {
     if(repository.findByName(clean).isPresent()){
       toDelete = repository.findByName(clean).get();
     }else{
-      return formatter.format(clean+" not found", HttpStatus.BAD_REQUEST);
+      return formatter.format(clean+" not found", HttpStatus.NOT_FOUND);
     }
     
     List<SimpleGrantedAuthority> authorities = user.getRoles();
@@ -155,6 +175,6 @@ public class ProductService {
       return formatter.format(clean+" not found", HttpStatus.BAD_REQUEST);
     }
     repository.deleteByName(name);
-    return formatter.format("product deleted with id " + name, HttpStatus.OK);
+    return formatter.format("product " + name + " deleted", HttpStatus.OK);
   }
 }

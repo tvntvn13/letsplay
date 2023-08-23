@@ -32,11 +32,11 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
       message = "Access denied";
     }
 
-    ApiError error = new ApiError(status, message, exception);
-    return buildResponseEntity(error);
+    ApiError error = new ApiError(status.value(), message, exception);
+    return buildResponseEntity(error, status);
   }
 
-  private ResponseEntity<Object> buildResponseEntity(ApiError error) {
-    return new ResponseEntity<>(error, error.getStatus());
+  private ResponseEntity<Object> buildResponseEntity(ApiError error, HttpStatus status) {
+    return new ResponseEntity<>(error, status);
   }
 }

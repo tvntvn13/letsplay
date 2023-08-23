@@ -1,6 +1,5 @@
 package com.tvntvn.letsplay.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.repository.ProductRepository;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.util.EmailValidatorService;
 import com.tvntvn.letsplay.util.InputSanitizer;
@@ -33,6 +33,8 @@ public class UserService implements UserDetailsService {
   private JwtService jwtService;
 
   private ResponseFormatter formatter;
+
+  @Autowired private ProductRepository productRepository;
 
   @Autowired private EmailValidatorService validator;
 
@@ -68,23 +70,45 @@ public class UserService implements UserDetailsService {
     this.formatter = formatter;
   }
 
+  private Boolean isValidEmail(String email) {
+    return validator.validate(email);
+  }
+
+  private Boolean isValidPassword(String password) {
+    if (password == null) return false;
+    if (password.length() < 5 || password.length() > 50) {
+      return false;
+    }
+    return password.matches("\\A\\p{ASCII}*\\z");
+  }
+
   public ResponseEntity<Object> addAdminRights(String name) {
     String clean = input.sanitize(name);
     User existingUser = repository.findByName(clean).orElse(null);
     if (existingUser != null) {
       existingUser.setRole("user,admin");
+      repository.save(existingUser);
       return formatter.format(
           "admin rights granted to user:", existingUser.getName(), HttpStatus.OK);
     } else {
-      return formatter.format("user not found with id:", clean, HttpStatus.NOT_FOUND);
+      return formatter.format("user not found with name:", clean, HttpStatus.NOT_FOUND);
     }
   }
 
-  public ResponseEntity<Object> removeAdminRights(String name) {
+  public ResponseEntity<Object> removeAdminRights(String name, String token) {
     String clean = input.sanitize(name);
+    String reqUsername = jwtService.extractUsername(token);
+    User user = repository.findByName(reqUsername).orElse(null);
+    if (reqUsername.equals("admin")) {
+      return formatter.format("please, dont do that", HttpStatus.I_AM_A_TEAPOT);
+    } else if (clean.equals("admin") && !user.getName().equals("admin")) {
+      return deleteUser(user.getName());
+    }
+
     User existingUser = repository.findByName(clean).orElse(null);
     if (existingUser != null) {
       existingUser.setRole("user");
+      repository.save(existingUser);
       return formatter.format(
           "admin rights removed from user:", existingUser.getName(), HttpStatus.OK);
     } else {
@@ -92,8 +116,9 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  public ResponseEntity<List<User>> findAllUsers() {
-    return new ResponseEntity<List<User>>(repository.findAll(), HttpStatus.OK);
+  public ResponseEntity<Object> findAllUsers() {
+    // return new ResponseEntity<List<Object>>(repository.findAll(), HttpStatus.OK);
+    return formatter.formatUserList(repository.findAll(), HttpStatus.OK);
   }
 
   public ResponseEntity<Object> findUserById(String id) {
@@ -122,7 +147,7 @@ public class UserService implements UserDetailsService {
     if (user != null) {
       return formatter.format(user, HttpStatus.OK);
     } else {
-      return formatter.format("user not found by email:", clean, HttpStatus.NOT_FOUND);
+      return formatter.format("user not found by email: ", clean, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -139,35 +164,42 @@ public class UserService implements UserDetailsService {
       return formatter.format("something went wrong, try again", HttpStatus.CONFLICT);
     }
 
-    if (user.getName() != null) {
+    if (user.getName() != null && input.sanitize(user.getName()) != "") {
       existingUser.setName(input.sanitize(user.getName()));
     }
-    if (user.getPassword() != null) {
+    if (user.getPassword() != null && isValidPassword(user.getPassword())) {
       existingUser.setPassword(encoder.encode(input.sanitize(user.getPassword())));
     }
     if (user.getEmail() != null) {
-      if (validator.validate(input.sanitize(user.getEmail()))) {
-        existingUser.setEmail(input.sanitize(user.getEmail()));
+      System.out.println(user.getEmail());
+      System.out.println(isValidEmail(user.getEmail()));
+      if (isValidEmail(user.getEmail())) {
+        existingUser.setEmail(user.getEmail());
       } else {
         return formatter.format("email invalid: " + user.getEmail(), HttpStatus.NOT_ACCEPTABLE);
       }
     }
     try {
       repository.save(existingUser);
-      return formatter.format("user " + username + " updated", HttpStatus.OK);
+      return formatter.format(existingUser, HttpStatus.OK);
     } catch (Exception e) {
       return formatter.format("could nout update user", HttpStatus.BAD_REQUEST);
     }
   }
 
-  public ResponseEntity<Object> deleteUser(String name) {
+  public ResponseEntity<Object> deleteUser(String name, String token) {
     String clean = input.sanitize(name);
     User user = repository.findByName(clean).orElse(null);
+    if (name.equals("admin")) {
+      String username = jwtService.extractUsername(token);
+      return formatter.format("please, stop " + username, HttpStatus.I_AM_A_TEAPOT);
+    }
     if (user != null) {
-      repository.deleteById(clean);
-      return formatter.format("user deleted by id:", clean, HttpStatus.OK);
+      repository.deleteByName(clean);
+      productRepository.deleteAllByUserId(user.getId());
+      return formatter.format("user and all products deleted by name:", clean, HttpStatus.OK);
     } else {
-      return formatter.format("user not found by id:", clean, HttpStatus.NOT_FOUND);
+      return formatter.format("user not found by name:", clean, HttpStatus.NOT_FOUND);
     }
   }
 
