@@ -102,7 +102,7 @@ public class UserService implements UserDetailsService {
     if (reqUsername.equals("admin")) {
       return formatter.format("please, dont do that", HttpStatus.I_AM_A_TEAPOT);
     } else if (clean.equals("admin") && !user.getName().equals("admin")) {
-      return deleteUser(user.getName());
+      return deleteUser(user.getName(), token);
     }
 
     User existingUser = repository.findByName(clean).orElse(null);
