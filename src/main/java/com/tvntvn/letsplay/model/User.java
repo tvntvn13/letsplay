@@ -1,40 +1,100 @@
 package com.tvntvn.letsplay.model;
 
-import com.mongodb.lang.NonNull;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Document(collection = "users")
 @Data
-public class User {
-  @Id private String id;
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class User implements UserDetails {
+  @JsonIgnore @Id private String id;
 
-  @NonNull
-  @Size(max = 40)
-  private String name;
+  @Field private String name;
 
-  @NonNull
-  @Email
-  @Size(max = 70)
-  private String email;
+  @Field private String email;
 
-  @NonNull
-  @Size(max = 60)
-  private String password;
+  @Field @JsonIgnore private String password;
 
-  @DBRef private Set<Role> roles = new HashSet<>();
-
-  public User() {}
+  @Field private String role;
 
   public User(String name, String email, String password) {
     this.name = name;
     this.email = email;
     this.password = password;
+  }
+
+  public User(String name, String email, String password, String role) {
+    this.name = name;
+    this.email = email;
+    this.password = password;
+    this.role = role;
+  }
+
+  @Override
+  @JsonIgnore
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+    String[] split = getRole().split(",");
+
+    for (String auth : split) {
+      authorities.add(new SimpleGrantedAuthority(auth));
+    }
+    return authorities;
+  }
+
+  @JsonIgnore
+  public List<SimpleGrantedAuthority> getRoles() {
+    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+    String[] split = getRole().split(",");
+
+    for (String auth : split) {
+      authorities.add(new SimpleGrantedAuthority(auth));
+    }
+    return authorities;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getUsername() {
+    return this.name;
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean isAccountNonExpired() {
+    return true;
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean isAccountNonLocked() {
+    return true;
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean isEnabled() {
+    return true;
   }
 }

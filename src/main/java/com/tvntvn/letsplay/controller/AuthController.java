@@ -1,29 +1,11 @@
 package com.tvntvn.letsplay.controller;
 
-import com.tvntvn.letsplay.model.Role;
-import com.tvntvn.letsplay.model.RoleEnum;
-import com.tvntvn.letsplay.model.User;
-import com.tvntvn.letsplay.payload.request.LoginRequest;
-import com.tvntvn.letsplay.payload.request.SignupRequest;
-import com.tvntvn.letsplay.payload.response.MessageResponse;
-import com.tvntvn.letsplay.payload.response.UserInfoResponse;
-import com.tvntvn.letsplay.repository.RoleRepository;
-import com.tvntvn.letsplay.repository.UserRepository;
-import com.tvntvn.letsplay.security.jwt.JwtUtils;
-import com.tvntvn.letsplay.security.services.UserDetailsImpl;
-import jakarta.validation.Valid;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,98 +13,98 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+import com.tvntvn.letsplay.model.AuthRequest;
+import com.tvntvn.letsplay.model.SignupRequest;
+import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.repository.UserRepository;
+import com.tvntvn.letsplay.service.JwtService;
+import com.tvntvn.letsplay.util.InputSanitizer;
+import com.tvntvn.letsplay.util.ResponseFormatter;
+
+import jakarta.validation.Valid;
+
+@CrossOrigin
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-  @Autowired AuthenticationManager authenticationManager;
-
-  @Autowired UserRepository userRepository;
-
-  @Autowired RoleRepository roleRepository;
 
   @Autowired PasswordEncoder encoder;
 
-  @Autowired JwtUtils jwtUtils;
+  @Autowired private InputSanitizer s;
 
-  @PostMapping("/signin")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-    Authentication authentication =
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(), loginRequest.getPassword()));
+  @Autowired private ResponseFormatter formatter;
 
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+  @Autowired private UserRepository userRepository;
 
-    List<String> roles =
-        userDetails.getAuthorities().stream()
-            .map(item -> item.getAuthority())
-            .collect(Collectors.toList());
+  @Autowired private AuthenticationManager authenticationManager;
 
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-        .body(
-            new UserInfoResponse(
-                userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles));
-  }
+  @Autowired private JwtService jwtService;
 
   @PostMapping("/signup")
-  public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
-    if (userRepository.existsByName(signupRequest.getUsername())) {
-      return ResponseEntity.badRequest()
-          .body(
-              new MessageResponse(
-                  "error: username " + signupRequest.getUsername() + " is already taken"));
+  public ResponseEntity<Object> addNewUser(@RequestBody @Valid SignupRequest user) {
+
+    System.out.println(user.toString());
+    String cleanName = s.sanitize(user.getName());
+    String cleanEmail = s.sanitize(user.getEmail());
+    String cleanPassword = s.sanitize(user.getPassword());
+
+    if (userRepository.findByName(cleanName).isPresent()) {
+      return formatter.format("user already exists", HttpStatus.CONFLICT);
     }
-    if (userRepository.existsByEmail(signupRequest.getEmail())) {
-      return ResponseEntity.badRequest()
-          .body(
-              new MessageResponse(
-                  "error: email " + signupRequest.getEmail() + " is already taken"));
+    if (userRepository.findByEmail(cleanEmail).isPresent()) {
+      return formatter.format("email already taken", HttpStatus.CONFLICT);
     }
-
-    User user =
-        new User(
-            signupRequest.getUsername(),
-            signupRequest.getEmail(),
-            encoder.encode(signupRequest.getPassword()));
-
-    Set<String> stringRoles = signupRequest.getRoles();
-    Set<Role> roles = new HashSet<>();
-
-    if (stringRoles == null) {
-      Role userRole =
-          roleRepository
-              .findByName(RoleEnum.user)
-              .orElseThrow(() -> new RuntimeException("error: role not found"));
-      roles.add(userRole);
-    } else {
-      stringRoles.forEach(
-          role -> {
-            switch (role) {
-              case "admin":
-                Role adminRole =
-                    roleRepository
-                        .findByName(RoleEnum.admin)
-                        .orElseThrow(() -> new RuntimeException("error: role not found"));
-                roles.add(adminRole);
-                break;
-              default:
-                Role userRole =
-                    roleRepository
-                        .findByName(RoleEnum.user)
-                        .orElseThrow(() -> new RuntimeException("error: role not found"));
-                roles.add(userRole);
-            }
-          });
-    }
-
-    user.setRoles(roles);
-    userRepository.save(user);
-
-    return ResponseEntity.ok(
-        new MessageResponse("user " + signupRequest.getUsername() + " is now registered"));
+    User newUser = new User(cleanName, cleanEmail, encoder.encode(cleanPassword));
+    newUser.setRole("user");
+    userRepository.save(newUser);
+    return formatter.format("user " + cleanName + " registered succesfully", HttpStatus.CREATED);
   }
+
+  @PostMapping("/login")
+  public ResponseEntity<Object> authenticateAndGetToken(
+      @RequestBody @Valid AuthRequest authRequest) {
+
+    String cleanName = s.sanitize(authRequest.getName());
+    String cleanPassword = s.sanitize(authRequest.getPassword());
+
+    try {
+      Authentication authentication =
+          authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(cleanName, cleanPassword));
+      if (authentication.isAuthenticated()) {
+        return formatter.format(jwtService.generateToken(cleanName), HttpStatus.OK);
+      } else {
+        return formatter.format("invalid username or password", HttpStatus.BAD_REQUEST);
+      }
+    } catch (Exception e) {
+      return formatter.format(e.getLocalizedMessage(), HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  // @GetMapping("/logout")
+  // @PreAuthorize("hasAuthority('user')")
+  // public ResponseEntity<Object> logoutAndExpireToken(
+  //     @RequestHeader("Authorization") String header) {
+  //   System.out.println("i got to here...");
+  //   String token = header.substring(7);
+  //   String username = jwtService.extractUsername(token);
+  //   User user = userRepository.findByName(username).get();
+  //   user.setCredendtialsNotExpired(false);
+  // try {
+  //   System.out.println("inside the try block");
+  //   Authentication authentication =
+  //       authenticationManager.authenticate(
+  //           new UsernamePasswordAuthenticationToken(username, password));
+  //   System.out.println("after authentication");
+  //   if (!authentication.isAuthenticated()) {
+  //     System.out.println("setting the authenticated to false now");
+  //     authentication.setAuthenticated(false);
+  //   }
+  //   // return formatter.format("geez", HttpStatus.I_AM_A_TEAPOT);
+  // } catch (Exception e) {
+  //   formatter.format("just catched this " + e.getLocalizedMessage(), HttpStatus.IM_USED);
+  // }
+  // String newToken = jwtService.revokeToken(username);
+  // return formatter.format("You are now logged out, " + username, HttpStatus.OK);
+  // }
 }

@@ -1,5 +1,13 @@
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_USERNAME}.uupual9.mongodb.net/?retryWrites=true&w=majority
-      database: letsplay
+      uri: mongodb://localhost:27017/letsplay
+      database: letsplay 
+
+# for atlas
+# spring:
+#   data:
+#     mongodb:
+#       uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_USERNAME}.uupual9.mongodb.net/?retryWrites=true&w=majority&ssl=true
+#       database: letsplay
+

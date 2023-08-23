@@ -1,17 +1,18 @@
 package com.tvntvn.letsplay.repository;
 
-import com.tvntvn.letsplay.model.User;
-import java.util.List;
 import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
+import org.springframework.data.mongodb.repository.MongoRepository;
+// import org.springframework.stereotype.Component;
+
+import com.tvntvn.letsplay.model.User;
+
+// @Component
 public interface UserRepository extends MongoRepository<User, String> {
 
-  List<User> findByName(String name);
+  Optional<User> findByName(String name);
 
   Optional<User> findByEmail(String email);
 
-  Boolean existsByName(String name);
-
-  Boolean existsByEmail(String email);
+  void deleteByName(String clean);
 }

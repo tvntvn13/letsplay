@@ -1,10 +1,21 @@
 package com.tvntvn.letsplay.repository;
 
-import com.tvntvn.letsplay.model.Product;
 import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import java.util.Optional;
 
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import com.tvntvn.letsplay.model.Product;
+
+@Repository
 public interface ProductRepository extends MongoRepository<Product, String> {
 
-  List<Product> findByName(String name);
+  Optional<Product> findByName(String name);
+
+  List<Product> findAllByUserId(String userId);
+
+  void deleteByName(String name);
+
+  void deleteAllByUserId(String userId);
 }
