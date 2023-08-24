@@ -213,7 +213,7 @@ public class UserService implements UserDetailsService {
   @PostConstruct
   private void initAdmin() {
     if (repository.findByName("admin").isEmpty()) {
-      User admin = new User("admin", "admin@admin.com", encoder.encode("root"), "user,admin");
+      User admin = new User(adminName, adminEmail, encoder.encode(adminPassword), adminRoles);
       repository.save(admin);
     }
   }

@@ -1,15 +1,14 @@
 # **LETSPLAY**
 
-### Introduction
+### _Introduction_
 
 - Letsplay is an **RESTful CRUD API** for managing **USERS** and **PRODUCTS**.
   The project is part of _Gritlab's_ Java curriculum. The project is written in
-  Java, and it uses **Spring Boot** and **MongoDB** to manage the connections,
-  database and security.
+  Java, and it uses **Spring Boot** and **MongoDB**
 
 ---
 
-### Installation
+### _Setup_
 
 - **Pre-requisites:**
   - MongoDB
@@ -20,11 +19,11 @@
   ---
 - Clone the repo.
 - Go to the root of the project
-- Start MongoDB:
+- Start **MongoDB:**
   ```bash
   mongod --dbpath /usr/local/var/mongodb --logpath /usr/local/var/log/mongodb/mongo.log --fork
   ```
-- Start Spring:
+- Start **Spring:**
   ```bash
   mvn spring-boot:run
   ```
@@ -33,11 +32,9 @@
 
 ---
 
-### API-Endpoints
+## _API-Endpoints_
 
----
-
-#### **Public**
+### **_Public_**
 
 - _**GET**_ | get all products
 - _https://localhost:443/api/products_
@@ -62,7 +59,9 @@
 
 ---
 
-#### **Authentication**
+### **_Authentication_**
+
+---
 
 - _**POST**_ | sign up
 - _https://localhost:443/api/auth/signup_
@@ -101,6 +100,8 @@
   "type": "about:blank"
 }
 ```
+
+---
 
 - **_POST_** | login
 - _https://localhost:443/api/auth/login_
@@ -143,11 +144,9 @@ with reasonable lengths_ **[1]: (#reference)** )
 
 ---
 
-### **Registered user**
+## **_Registered user_**
 
----
-
-### **USERS**
+### **_USERS_**
 
 ---
 
@@ -191,6 +190,8 @@ with reasonable lengths_ **[1]: (#reference)** )
   "timestamp": "2023-08-22T15:21:24.548+00:00"
 }
 ```
+
+---
 
 - **_GET_** | get user by name
 - _https://localhost:443/api/users?name=name_
@@ -329,9 +330,7 @@ only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 ---
 
-### **PRODUCTS**
-
----
+## **_PRODUCTS_**
 
 - **_POST_** | create a new product
 - _https://localhost:443/api/products_
@@ -617,9 +616,7 @@ only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 ---
 
-### ADMIN
-
----
+## _ADMIN_
 
 - **_DELETE_** | delete user and all users products
 - _https://localhost:443/api/users?name=name_
@@ -733,7 +730,7 @@ only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 <a id="reference"></a>
 
-##### notes:
+#### _notes_:
 
 ---
 
@@ -765,3 +762,5 @@ only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
 - due to the certificate beign self signed, you need to disable ssl-verification
   on your API-client to make requests to the API.
+
+---

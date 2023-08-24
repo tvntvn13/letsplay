@@ -36,9 +36,9 @@ build/
 application.properties
 
 ## keystore ##
-*.jks
+# *.jks
 keys/
-*.p12
+# *.p12
 
 ## notes ##
 todos.txt
