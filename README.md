@@ -19,14 +19,12 @@
   ---
 - Clone the repo.
 - Go to the root of the project
-- Start **MongoDB:**
+- Run the launch.sh script:
   ```bash
-  mongod --dbpath /usr/local/var/mongodb --logpath /usr/local/var/log/mongodb/mongo.log --fork
+  ./launch.sh
   ```
-- Start **Spring:**
-  ```bash
-  mvn spring-boot:run
-  ```
+- database will be created at:
+  - data/db/
 - server will start at:
   - _https://localhost:443_
 
@@ -115,7 +113,7 @@
 ```
 
 **required fields:** _name **string**, password **string** ( only alphanumerical
-with reasonable lengths_ **[1]: (#reference)** )
+with reasonable lengths_ **[[1]](#reference)** )
 
 - **RESPONSE**:
 - success:

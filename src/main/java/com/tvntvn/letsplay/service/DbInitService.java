@@ -26,7 +26,7 @@ public class DbInitService {
   private PasswordEncoder encoder = new BCryptPasswordEncoder();
 
   // flag for init or not
-  private boolean doit = true;
+  private boolean init = true;
 
   @Autowired
   public void setDummyUser(DummyUserProperties userProperties) {
@@ -55,7 +55,7 @@ public class DbInitService {
     User[] users = {bobby, damon, tom};
 
     for (User user : users) {
-      if (userIsNotPresent(user) && doit) {
+      if (userIsNotPresent(user) && init) {
         user.setRole("user");
         userRepository.save(user);
 
