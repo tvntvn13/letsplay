@@ -44,5 +44,6 @@ keys/
 todos.txt
 
 ## database ##
-data/
+data/db/
+data/log
 

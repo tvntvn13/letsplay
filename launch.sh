@@ -1,8 +1,14 @@
+cwd=$(pwd)
+dbpath="$cwd/data/db"
+logpath="$cwd/data/log/mongo.log"
+
 echo "'creating database...'"
 sleep 1
-mongod --dbpath /Users/tvntvn/workspace/projects/java/letsplay/data/db/ --logpath /Users/tvntvn/workspace/projects/java/letsplay/data/logs/mongo.log --fork &&
+
+mongod --dbpath "$dbpath" --logpath "$logpath" --fork &&
 	echo ""
 echo ""
 sleep 2
+
 echo "'starting spring boot...'"
 mvn spring-boot:run
