@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tvntvn.letsplay.model.Product;
 import com.tvntvn.letsplay.model.ProductRequest;
+import com.tvntvn.letsplay.model.ProductUpdateRequest;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.service.ProductService;
 
@@ -43,7 +43,7 @@ public class ProductController {
     return service.findAllProducts();
   }
 
-  @GetMapping(path = "/myproducts")
+  @GetMapping("/myproducts")
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> getCurrentUsersProducts(
       @RequestHeader("Authorization") String header) {
@@ -69,7 +69,7 @@ public class ProductController {
   public ResponseEntity<Object> modifyProduct(
       @RequestHeader("Authorization") String header,
       @RequestParam String name,
-      @RequestBody Product product) {
+      @Valid @RequestBody ProductUpdateRequest product) {
     String token = header.substring(7);
     return service.updateProduct(token, name, product);
   }

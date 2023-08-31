@@ -1,7 +1,5 @@
 package com.tvntvn.letsplay.model;
 
-// import org.springframework.http.HttpStatus;
-
 import lombok.Getter;
 import lombok.Setter;
 

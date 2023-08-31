@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.model.UserUpdateRequest;
 import com.tvntvn.letsplay.repository.ProductRepository;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.util.EmailValidatorService;
@@ -99,9 +100,9 @@ public class UserService implements UserDetailsService {
     String clean = input.sanitize(name);
     String reqUsername = jwtService.extractUsername(token);
     User user = repository.findByName(reqUsername).orElse(null);
-    if (reqUsername.equals("admin")) {
+    if (clean.equals("admin") && reqUsername.equals("admin")) {
       return formatter.format("please, dont do that", HttpStatus.I_AM_A_TEAPOT);
-    } else if (clean.equals("admin") && !user.getName().equals("admin")) {
+    } else if (clean.equals("admin") && !reqUsername.equals("admin")) {
       return deleteUser(user.getName(), token);
     }
 
@@ -117,7 +118,6 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> findAllUsers() {
-    // return new ResponseEntity<List<Object>>(repository.findAll(), HttpStatus.OK);
     return formatter.formatUserList(repository.findAll(), HttpStatus.OK);
   }
 
@@ -151,7 +151,7 @@ public class UserService implements UserDetailsService {
     }
   }
 
-  public ResponseEntity<Object> updateUser(User user, String token) {
+  public ResponseEntity<Object> updateUser(UserUpdateRequest user, String token) {
     String username = jwtService.extractUsername(token);
     User existingUser = repository.findByName(username).orElse(null);
     String id = existingUser != null ? existingUser.getId() : null;
@@ -164,26 +164,34 @@ public class UserService implements UserDetailsService {
       return formatter.format("something went wrong, try again", HttpStatus.CONFLICT);
     }
 
-    if (user.getName() != null && input.sanitize(user.getName()) != "") {
-      existingUser.setName(input.sanitize(user.getName()));
-    }
-    if (user.getPassword() != null && isValidPassword(user.getPassword())) {
-      existingUser.setPassword(encoder.encode(input.sanitize(user.getPassword())));
-    }
-    if (user.getEmail() != null) {
-      System.out.println(user.getEmail());
-      System.out.println(isValidEmail(user.getEmail()));
-      if (isValidEmail(user.getEmail())) {
-        existingUser.setEmail(user.getEmail());
+    String updateName = user.getName() == null ? "" : user.getName().get();
+    String updateEmail = user.getEmail() == null ? "" : user.getEmail().get();
+    String updatePassword = user.getPassword() == null ? "" : user.getPassword().get();
+
+    if (!updateName.equals("") && !input.sanitize(updateName).equals("")) {
+      if (!repository.findByName(updateName).isPresent()) {
+        existingUser.setName(input.sanitize(updateName));
       } else {
-        return formatter.format("email invalid: " + user.getEmail(), HttpStatus.NOT_ACCEPTABLE);
+        return formatter.format("name already taken: " + updateName, HttpStatus.CONFLICT);
       }
+    }
+    if (!updatePassword.equals("") && isValidPassword(updatePassword)) {
+      existingUser.setPassword(encoder.encode(input.sanitize(updatePassword)));
+    }
+    if (!updateEmail.equals("") && isValidEmail(updateEmail)) {
+      if (!repository.findByEmail(updateEmail).isPresent()) {
+        existingUser.setEmail(updateEmail);
+      } else {
+        return formatter.format("email already taken: " + updateEmail, HttpStatus.CONFLICT);
+      }
+    } else {
+      return formatter.format("email invalid: " + updateEmail, HttpStatus.BAD_REQUEST);
     }
     try {
       repository.save(existingUser);
       return formatter.format(existingUser, HttpStatus.OK);
     } catch (Exception e) {
-      return formatter.format("could nout update user", HttpStatus.BAD_REQUEST);
+      return formatter.format("could not update user", HttpStatus.BAD_REQUEST);
     }
   }
 

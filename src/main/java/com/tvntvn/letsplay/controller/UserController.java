@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tvntvn.letsplay.model.User;
+import com.tvntvn.letsplay.model.UserUpdateRequest;
 import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.service.UserService;
@@ -68,7 +68,7 @@ public class UserController {
   @PutMapping
   @PreAuthorize("hasAuthority('user')")
   public ResponseEntity<Object> modifyUser(
-      @RequestHeader("Authorization") String header, @RequestBody User user) {
+      @RequestHeader("Authorization") String header, @RequestBody UserUpdateRequest user) {
 
     String token = header.substring(7);
     return service.updateUser(user, token);

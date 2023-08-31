@@ -8,15 +8,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-// import lombok.Builder;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// @Builder
 @Document(collection = "products")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class Product {
   @JsonIgnore @Id private String id;
@@ -31,6 +28,7 @@ public class Product {
 
   @Field
   @NotNull(message = "price cannot be empty")
+  @Positive
   private Double price;
 
   @Field

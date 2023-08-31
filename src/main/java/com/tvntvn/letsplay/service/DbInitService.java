@@ -16,7 +16,6 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class DbInitService {
 
-  // TODO: fix the autowiring so dummy not null!
   private DummyUserProperties dummyUser;
 
   @Autowired private UserRepository userRepository;
@@ -25,8 +24,8 @@ public class DbInitService {
 
   private PasswordEncoder encoder = new BCryptPasswordEncoder();
 
-  // flag for init or not
-  private boolean init = true;
+  // flag to set init ON/OFF
+  private boolean init = false;
 
   @Autowired
   public void setDummyUser(DummyUserProperties userProperties) {
@@ -52,18 +51,20 @@ public class DbInitService {
             dummyUser.getUser3Email(),
             encoder.encode(dummyUser.getUser3Password()));
 
-    User[] users = {bobby, damon, tom};
+    User taneli = new User("taneli", "taneli@taneli.com", encoder.encode("test123"));
+
+    User[] users = {bobby, damon, tom, taneli};
 
     for (User user : users) {
       if (userIsNotPresent(user) && init) {
         user.setRole("user");
         userRepository.save(user);
 
-        for (int i = 1; i < 4; i++) {
+        for (int i = 1; i <= 6; i++) {
           Product prod = new Product();
           prod.setName(user.getName() + "s product" + i);
           prod.setDescription(prod.getName() + "s description");
-          prod.setPrice(12.3 * i * 1.5);
+          prod.setPrice(Double.valueOf(Math.round(12.3 * i * 1.55) * 100 / 100));
 
           User dbUser = userRepository.findByName(user.getName()).get();
           prod.setUserId(dbUser.getId());

@@ -15,12 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class ExceptionFilter extends OncePerRequestFilter {
 
-  // @Autowired private ResponseFormatter formatter;
-
-  // private ResponseEntity<Object> sendError(Exception e) {
-  //   return formatter.format(e.getMessage(), HttpStatus.NOT_ACCEPTABLE);
-  // }
-
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -31,24 +25,11 @@ public class ExceptionFilter extends OncePerRequestFilter {
     } catch (Exception e) {
       System.out.println("i got here bro, exceptionFilter");
 
-      // ApiError error =
-      //     new ApiError(HttpStatus.NOT_ACCEPTABLE.value(), "something went really wrong", e);
-      // ResponseEntity<Object> errorResponse = sendError(e);
-      response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType("text/plain");
-      // PrintWriter writer = response.getWriter();
-      // writer.print(error);
-      // writer.flush();
       response
           .getWriter()
           .write("something went wrong, try again later\n\n" + e.getLocalizedMessage());
-
-      // response.setContentType("text/plain");
-      // response.getWriter().write("error: unauthorized\n" + e.getMessage().split(":")[2].trim());
-      // response
-      //     .getWriter()
-      //     .write(formatter.format(e.getMessage(), HttpStatus.NOT_ACCEPTABLE));
-      // formatter.format(e.getMessage(), HttpStatus.NOT_ACCEPTABLE);
     }
   }
 }

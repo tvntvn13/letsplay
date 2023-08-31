@@ -17,7 +17,6 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Object> handleException(Exception exception) {
-    // HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
     HttpStatus status = HttpStatus.FORBIDDEN;
     String message = "An error occurred";
     if (exception instanceof NotFoundException) {

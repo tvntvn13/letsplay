@@ -342,14 +342,6 @@ only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 }
 ```
 
-```JSON
-{
-  "name": "Vaccuum cleaner PX3000",
-  "description": "the best vaccuum cleaner",
-  "price": 49.00
-}
-```
-
 **required fields:** _name **string**, description **string**, price **double**
 ( only alphanumerical with reasonable lengths_ **[[1]](#reference)** )
 
