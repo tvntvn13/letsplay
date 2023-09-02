@@ -19,5 +19,6 @@ public class UserUpdateRequest {
   private Optional<String> password;
 
   @Email(message = "email is not valid")
+  @Nullable
   private Optional<String> email;
 }

@@ -168,6 +168,9 @@ public class UserService implements UserDetailsService {
     String updateEmail = user.getEmail() == null ? "" : user.getEmail().get();
     String updatePassword = user.getPassword() == null ? "" : user.getPassword().get();
 
+    String oldPassword = existingUser == null ? "" : existingUser.getPassword();
+    String oldName = existingUser == null ? "" : existingUser.getName();
+
     if (!updateName.equals("") && !input.sanitize(updateName).equals("")) {
       if (!repository.findByName(updateName).isPresent()) {
         existingUser.setName(input.sanitize(updateName));
@@ -184,12 +187,20 @@ public class UserService implements UserDetailsService {
       } else {
         return formatter.format("email already taken: " + updateEmail, HttpStatus.CONFLICT);
       }
-    } else {
+    } else if (!updateEmail.equals("") && !isValidEmail(updateEmail)) {
       return formatter.format("email invalid: " + updateEmail, HttpStatus.BAD_REQUEST);
     }
     try {
       repository.save(existingUser);
-      return formatter.format(existingUser, HttpStatus.OK);
+      if (oldPassword.equals(existingUser.getPassword())
+          && oldName.equals(existingUser.getName())) {
+        return formatter.format(existingUser, HttpStatus.OK);
+      } else {
+        return formatter.format(
+            "user updated: " + existingUser.getName() + ". token invalidated, please login again",
+            HttpStatus.OK);
+      }
+
     } catch (Exception e) {
       return formatter.format("could not update user", HttpStatus.BAD_REQUEST);
     }

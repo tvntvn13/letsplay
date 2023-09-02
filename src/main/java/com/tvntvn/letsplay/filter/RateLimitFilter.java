@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.google.common.util.concurrent.RateLimiter;
+import com.google.gson.Gson;
+import com.tvntvn.letsplay.model.ApiError;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,25 +22,44 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
   private final RateLimiter rateLimiter = RateLimiter.create(5);
 
+  private Gson gson = new Gson();
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+
+    ApiError apierror = new ApiError();
+    String apiErrorString;
 
     try {
       if (rateLimiter.tryAcquire()) {
         filterChain.doFilter(request, response);
       } else {
         response.setStatus(429);
-        response.setContentType("text/plain");
-        response.getWriter().write("rate limit exceeded");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        apierror.setPayload("ratelimit exceeded");
+        apierror.setStatus(429);
+        apierror.setDetail("TOO MANY REQUESTS");
+
+        apiErrorString = this.gson.toJson(apierror);
+        response.getWriter().print(apiErrorString);
+        response.getWriter().flush();
       }
     } catch (Exception e) {
       response.setStatus(403);
-      response.setContentType("text/plain");
-      response
-          .getWriter()
-          .write("something went wrong, try again later\n\n" + e.getLocalizedMessage());
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
+      apierror.setPayload(e.getLocalizedMessage());
+      apierror.setStatus(403);
+      apierror.setDetail("FORBIDDEN");
+
+      apiErrorString = this.gson.toJson(apierror);
+      response.getWriter().print(apiErrorString);
+      response.getWriter().flush();
     }
   }
 }
