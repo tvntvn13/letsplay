@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RateLimitFilter extends OncePerRequestFilter {
 
-  private final RateLimiter rateLimiter = RateLimiter.create(5);
+  private final RateLimiter rateLimiter = RateLimiter.create(20);
 
   private Gson gson = new Gson();
 
