@@ -3,7 +3,6 @@ package com.tvntvn.letsplay.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,8 +20,6 @@ import com.tvntvn.letsplay.util.EmailValidatorService;
 import com.tvntvn.letsplay.util.InputSanitizer;
 import com.tvntvn.letsplay.util.ResponseFormatter;
 
-import jakarta.annotation.PostConstruct;
-
 @Service
 public class UserService implements UserDetailsService {
   private UserRepository repository;
@@ -38,18 +35,6 @@ public class UserService implements UserDetailsService {
   @Autowired private ProductRepository productRepository;
 
   @Autowired private EmailValidatorService validator;
-
-  @Value("${adminName}")
-  private String adminName;
-
-  @Value("${adminPassword}")
-  private String adminPassword;
-
-  @Value("${adminEmail}")
-  private String adminEmail;
-
-  @Value("${adminRoles}")
-  private String adminRoles;
 
   @Autowired
   public void setRepository(UserRepository repository) {
@@ -227,13 +212,5 @@ public class UserService implements UserDetailsService {
     Optional<User> user = repository.findByName(username);
     if (user.isPresent()) return user.get();
     throw new UsernameNotFoundException("user not found");
-  }
-
-  @PostConstruct
-  private void initAdmin() {
-    if (repository.findByName("admin").isEmpty()) {
-      User admin = new User(adminName, adminEmail, encoder.encode(adminPassword), adminRoles);
-      repository.save(admin);
-    }
   }
 }

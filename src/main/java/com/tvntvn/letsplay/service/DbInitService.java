@@ -1,6 +1,7 @@
 package com.tvntvn.letsplay.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -24,12 +25,32 @@ public class DbInitService {
 
   private PasswordEncoder encoder = new BCryptPasswordEncoder();
 
+  @Value("${adminName}")
+  private String adminName;
+
+  @Value("${adminPassword}")
+  private String adminPassword;
+
+  @Value("${adminEmail}")
+  private String adminEmail;
+
+  @Value("${adminRoles}")
+  private String adminRoles;
+
   // flag to set init ON/OFF
-  private boolean init = false;
+  private boolean init = true;
 
   @Autowired
   public void setDummyUser(DummyUserProperties userProperties) {
     this.dummyUser = userProperties;
+  }
+
+  @PostConstruct
+  private void initAdmin() {
+    if (userRepository.findByName("admin").isEmpty()) {
+      User admin = new User(adminName, adminEmail, encoder.encode(adminPassword), adminRoles);
+      userRepository.save(admin);
+    }
   }
 
   @PostConstruct
