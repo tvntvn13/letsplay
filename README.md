@@ -12,8 +12,8 @@
 
 - **Pre-requisites:**
   - MongoDB
-  - Spring
-  - Java
+  - Maven
+  - Java 17
   - HTTPie, Postman etc. API-tool
   - Knowledge about HTTP-requests
   ---
