@@ -1,11 +1,29 @@
 cwd=$(pwd)
-dbpath="$cwd/data/db"
-logpath="$cwd/data/log/mongo.log"
+datapath="$cwd/data"
+dbpath="$datapath/db"
+logpath="$dbpath/log/"
+logfile="$logpath/mongo.log"
 
-echo "'creating database...'"
+if [ ! -d "$datapath" ]; then
+	echo "creating db folder..."
+	mkdir "$datapath"
+fi
+echo ""
 sleep 1
-
-mongod --dbpath "$dbpath" --logpath "$logpath" --fork &&
+if [ ! -d "$dbpath" ]; then
+	echo "creating data folder..."
+	mkdir "$dbpath"
+fi
+echo ""
+sleep 1
+if [ ! -d "$logpath" ]; then
+	echo "creating log folder..."
+	mkdir "$logpath"
+fi
+echo ""
+sleep 1
+echo "starting the database..."
+mongod --dbpath "$dbpath" --logpath "$logfile" --fork &&
 	echo ""
 echo ""
 sleep 2

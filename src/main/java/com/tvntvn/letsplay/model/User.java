@@ -13,13 +13,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Document(collection = "users")
 @Data
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class User implements UserDetails {
   @JsonIgnore @Id private String id;
