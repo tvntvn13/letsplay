@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cwd=$(pwd)
 datapath="$cwd/data"
 dbpath="$datapath/db"
