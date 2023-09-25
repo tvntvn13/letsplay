@@ -33,7 +33,7 @@ build/
 .vscode/
 
 ## Variables ##
-application.properties
+# application.properties
 
 ## keystore ##
 # *.jks
