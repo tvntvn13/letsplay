@@ -13,8 +13,10 @@ import com.tvntvn.letsplay.repository.ProductRepository;
 import com.tvntvn.letsplay.repository.UserRepository;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class DbInitService {
 
   private DummyUserProperties dummyUser;
@@ -85,7 +87,7 @@ public class DbInitService {
           Product prod = new Product();
           prod.setName(user.getName() + "s product" + i);
           prod.setDescription(prod.getName() + "s description");
-          prod.setPrice(Double.valueOf(Math.round(12.3 * i * 1.55) * 100 / 100));
+          prod.setPrice(Math.round(12.3 * i * 1.55) * 100 / (double) 100);
 
           User dbUser = userRepository.findByName(user.getName()).get();
           prod.setUserId(dbUser.getId());
@@ -93,7 +95,7 @@ public class DbInitService {
         }
       }
     }
-    System.out.println("database initialized with some users and products");
+    log.info("database initialized with some users and products");
   }
 
   private boolean userIsNotPresent(User user) {

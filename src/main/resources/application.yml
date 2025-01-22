@@ -1,8 +1,9 @@
+---
 spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/letsplay
-      database: letsplay 
+      database: letsplay
 
 # for atlas
 # spring:

@@ -55,7 +55,7 @@ public class AuthController {
     if (userRepository.findByName(cleanName).isPresent()) {
       return formatter.format("user already exists", HttpStatus.CONFLICT);
     }
-    if (!emailValidator.validate(cleanEmail)) {
+    if (Boolean.FALSE.equals(emailValidator.validate(cleanEmail))) {
       return formatter.format("invalid email", HttpStatus.BAD_REQUEST);
     }
     if (userRepository.findByEmail(cleanEmail).isPresent()) {

@@ -20,15 +20,26 @@ import com.tvntvn.letsplay.util.ResponseFormatter;
 @Service
 public class ProductService {
 
-  @Autowired private UserRepository userRepository;
+  private static final String PRODUCT = "product ";
+  private final UserRepository userRepository;
+  private final ProductRepository repository;
+  private final JwtService jwtService;
+  private final InputSanitizer input;
+  private final ResponseFormatter formatter;
 
-  @Autowired private ProductRepository repository;
-
-  @Autowired private JwtService jwtService;
-
-  @Autowired private InputSanitizer input;
-
-  @Autowired private ResponseFormatter formatter;
+  @Autowired
+  public ProductService(
+      UserRepository userRepository,
+      ProductRepository repository,
+      JwtService jwtService,
+      InputSanitizer input,
+      ResponseFormatter formatter) {
+    this.userRepository = userRepository;
+    this.repository = repository;
+    this.jwtService = jwtService;
+    this.input = input;
+    this.formatter = formatter;
+  }
 
   public ResponseEntity<Object> addProduct(ProductRequest product, String token) {
 
@@ -90,12 +101,12 @@ public class ProductService {
   public ResponseEntity<Object> findProductByName(String name) {
     String clean = input.sanitize(name);
     if (!repository.findByName(clean).isPresent())
-      return formatter.format("product " + clean + " not found", HttpStatus.NOT_FOUND);
+      return formatter.format(PRODUCT + clean + " not found", HttpStatus.NOT_FOUND);
     Product product = repository.findByName(clean).orElse(null);
     if (product != null) {
       return formatter.format(product, HttpStatus.OK);
     } else {
-      return formatter.format("product " + clean + " not found", HttpStatus.NOT_FOUND);
+      return formatter.format(PRODUCT + clean + " not found", HttpStatus.NOT_FOUND);
     }
   }
 
@@ -155,13 +166,13 @@ public class ProductService {
     Boolean isValid =
         userId.equals(toDelete.getUserId())
             || authorities.stream().anyMatch(auth -> auth.getAuthority().equals("admin"));
-    if (!isValid)
+    if (Boolean.FALSE.equals(isValid))
       return formatter.format("no rights for deleting product " + clean, HttpStatus.FORBIDDEN);
 
     if (repository.findByName(clean).isEmpty()) {
       return formatter.format("product not found: " + clean, HttpStatus.BAD_REQUEST);
     }
     repository.deleteByName(name);
-    return formatter.format("product " + name + " deleted", HttpStatus.OK);
+    return formatter.format(PRODUCT + name + " deleted", HttpStatus.OK);
   }
 }

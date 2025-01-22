@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 public class EmailValidatorService {
   public Boolean validate(String email) {
     if (email == null) return false;
-    String regex =
-        "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[A-Z0-9-]+\\.)+[A-Z]{2,6}$";
+    String regex = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,6}$";
 
     Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
     Matcher matcher = pattern.matcher(email);

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tvntvn.letsplay.model.UserUpdateRequest;
-import com.tvntvn.letsplay.repository.UserRepository;
 import com.tvntvn.letsplay.service.JwtService;
 import com.tvntvn.letsplay.service.UserService;
 import com.tvntvn.letsplay.util.InputSanitizer;
@@ -25,13 +24,18 @@ import com.tvntvn.letsplay.util.InputSanitizer;
 @RequestMapping("/api/users")
 public class UserController {
 
-  @Autowired UserRepository repository;
+  private final UserService service;
 
-  @Autowired UserService service;
+  private final JwtService jwtService;
 
-  @Autowired JwtService jwtService;
+  private final InputSanitizer s;
 
-  @Autowired InputSanitizer s;
+  @Autowired
+  public UserController(UserService service, JwtService jwtService, InputSanitizer s) {
+    this.service = service;
+    this.jwtService = jwtService;
+    this.s = s;
+  }
 
   @GetMapping
   @PreAuthorize("hasAuthority('user')")

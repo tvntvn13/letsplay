@@ -26,9 +26,15 @@ import jakarta.validation.Valid;
 @RequestMapping("api/products")
 public class ProductController {
 
-  @Autowired private ProductService service;
+  private final ProductService service;
 
-  @Autowired private JwtService jwtService;
+  private final JwtService jwtService;
+
+  @Autowired
+  public ProductController(ProductService service, JwtService jwtService) {
+    this.service = service;
+    this.jwtService = jwtService;
+  }
 
   @PostMapping
   @PreAuthorize("hasAuthority('user')")

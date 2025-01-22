@@ -85,9 +85,10 @@ public class UserService implements UserDetailsService {
     String clean = input.sanitize(name);
     String reqUsername = jwtService.extractUsername(token);
     User user = repository.findByName(reqUsername).orElse(null);
-    if (clean.equals("admin") && reqUsername.equals("admin")) {
+    final String ADMIN = "admin";
+    if (clean.equals(ADMIN) && reqUsername.equals(ADMIN)) {
       return formatter.format("please, dont do that", HttpStatus.I_AM_A_TEAPOT);
-    } else if (clean.equals("admin") && !reqUsername.equals("admin")) {
+    } else if (clean.equals(ADMIN) && !reqUsername.equals(ADMIN)) {
       return deleteUser(user.getName(), token);
     }
 
@@ -163,16 +164,16 @@ public class UserService implements UserDetailsService {
         return formatter.format("name already taken: " + updateName, HttpStatus.CONFLICT);
       }
     }
-    if (!updatePassword.equals("") && isValidPassword(updatePassword)) {
+    if (!updatePassword.equals("") && Boolean.TRUE.equals(isValidPassword(updatePassword))) {
       existingUser.setPassword(encoder.encode(input.sanitize(updatePassword)));
     }
-    if (!updateEmail.equals("") && isValidEmail(updateEmail)) {
+    if (!updateEmail.equals("") && Boolean.TRUE.equals(isValidEmail(updateEmail))) {
       if (!repository.findByEmail(updateEmail).isPresent()) {
         existingUser.setEmail(updateEmail);
       } else {
         return formatter.format("email already taken: " + updateEmail, HttpStatus.CONFLICT);
       }
-    } else if (!updateEmail.equals("") && !isValidEmail(updateEmail)) {
+    } else if (!updateEmail.equals("") && Boolean.TRUE.equals(!isValidEmail(updateEmail))) {
       return formatter.format("email invalid: " + updateEmail, HttpStatus.BAD_REQUEST);
     }
     try {

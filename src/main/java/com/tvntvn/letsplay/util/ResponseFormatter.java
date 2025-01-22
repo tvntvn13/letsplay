@@ -27,47 +27,45 @@ public class ResponseFormatter {
     return status.getReasonPhrase();
   }
 
-  ResponseFormatter() {}
-
   public ResponseEntity<Object> format(String message, HttpStatus status) {
     stringResponse.setPayload(message);
     stringResponse.setStatus(statusCode(status));
     stringResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(stringResponse, status);
+    return new ResponseEntity<>(stringResponse, status);
   }
 
   public ResponseEntity<Object> format(String message, String userInfo, HttpStatus status) {
     stringResponse.setPayload(message + " " + userInfo);
     stringResponse.setStatus(statusCode(status));
     stringResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(stringResponse, status);
+    return new ResponseEntity<>(stringResponse, status);
   }
 
   public ResponseEntity<Object> format(User user, HttpStatus status) {
     userResponse.setPayload(user);
     userResponse.setStatus(statusCode(status));
     userResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(userResponse, status);
+    return new ResponseEntity<>(userResponse, status);
   }
 
   public ResponseEntity<Object> format(Product product, HttpStatus status) {
     productResponse.setPayload(product);
     productResponse.setStatus(statusCode(status));
     productResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(productResponse, status);
+    return new ResponseEntity<>(productResponse, status);
   }
 
   public ResponseEntity<Object> formatProductList(List<Product> list, HttpStatus status) {
     listResponse.setPayload(list);
     listResponse.setStatus(statusCode(status));
     listResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(listResponse, status);
+    return new ResponseEntity<>(listResponse, status);
   }
 
   public ResponseEntity<Object> formatUserList(List<User> list, HttpStatus status) {
     listUserResponse.setPayload(list);
     listUserResponse.setStatus(statusCode(status));
     listUserResponse.setDetail(statusMessage(status));
-    return new ResponseEntity<Object>(listUserResponse, status);
+    return new ResponseEntity<>(listUserResponse, status);
   }
 }

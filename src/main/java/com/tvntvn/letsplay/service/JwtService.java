@@ -20,7 +20,7 @@ import io.jsonwebtoken.security.Keys;
 public class JwtService {
 
   @Value("${letsplay.jwtSecret}")
-  private String SECRET;
+  private String secret;
 
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
     final Claims claims = extractAllClaims(token);
@@ -64,7 +64,7 @@ public class JwtService {
   }
 
   private Key getSignKey() {
-    byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+    byte[] keyBytes = Decoders.BASE64.decode(secret);
     return Keys.hmacShaKeyFor(keyBytes);
   }
 
