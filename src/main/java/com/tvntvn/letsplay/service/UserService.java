@@ -138,57 +138,85 @@ public class UserService implements UserDetailsService {
   }
 
   public ResponseEntity<Object> updateUser(UserUpdateRequest user, String token) {
-    String username = jwtService.extractUsername(token);
-    User existingUser = repository.findByName(username).orElse(null);
-    String id = existingUser != null ? existingUser.getId() : null;
-
-    if (id == null || existingUser == null)
+    User existingUser = findExistingUser(token);
+    if (existingUser == null) {
       return formatter.format("bad request", HttpStatus.BAD_REQUEST);
-    if (repository.findById(id).isPresent()) {
-      existingUser = repository.findById(id).get();
-    } else {
-      return formatter.format("something went wrong, try again", HttpStatus.CONFLICT);
     }
 
+    UpdateResult result = validateAndUpdateUser(existingUser, user);
+    return processUpdateResult(existingUser, result);
+  }
+
+  private User findExistingUser(String token) {
+    String username = jwtService.extractUsername(token);
+    return repository.findByName(username).orElse(null);
+  }
+
+  private record UpdateResult(boolean nameUpdated, boolean passwordUpdated, boolean emailUpdated) {}
+
+  private UpdateResult validateAndUpdateUser(User existingUser, UserUpdateRequest user) {
+    boolean nameUpdated = updateName(existingUser, user);
+    boolean passwordUpdated = updatePassword(existingUser, user);
+    boolean emailUpdated = updateEmail(existingUser, user);
+    return new UpdateResult(nameUpdated, passwordUpdated, emailUpdated);
+  }
+
+  private boolean updateName(User existingUser, UserUpdateRequest user) {
     String updateName = user.getName() == null ? "" : user.getName().get();
-    String updateEmail = user.getEmail() == null ? "" : user.getEmail().get();
+    if (updateName.isEmpty() || !input.sanitize(updateName).isEmpty()) return false;
+
+    if (repository.findByName(updateName).isPresent()) {
+      throw new UserUpdateException("name already taken: " + updateName);
+    }
+
+    existingUser.setName(input.sanitize(updateName));
+    return true;
+  }
+
+  private boolean updatePassword(User existingUser, UserUpdateRequest user) {
     String updatePassword = user.getPassword() == null ? "" : user.getPassword().get();
+    if (updatePassword.isEmpty() || Boolean.TRUE.equals(!isValidPassword(updatePassword)))
+      return false;
 
-    String oldPassword = existingUser == null ? "" : existingUser.getPassword();
-    String oldName = existingUser == null ? "" : existingUser.getName();
+    existingUser.setPassword(encoder.encode(input.sanitize(updatePassword)));
+    return true;
+  }
 
-    if (!updateName.equals("") && !input.sanitize(updateName).equals("")) {
-      if (!repository.findByName(updateName).isPresent()) {
-        existingUser.setName(input.sanitize(updateName));
-      } else {
-        return formatter.format("name already taken: " + updateName, HttpStatus.CONFLICT);
-      }
+  private boolean updateEmail(User existingUser, UserUpdateRequest user) {
+    String updateEmail = user.getEmail() == null ? "" : user.getEmail().get();
+    if (updateEmail.isEmpty()) return false;
+
+    if (Boolean.FALSE.equals(isValidEmail(updateEmail))) {
+      throw new UserUpdateException("email invalid: " + updateEmail);
     }
-    if (!updatePassword.equals("") && Boolean.TRUE.equals(isValidPassword(updatePassword))) {
-      existingUser.setPassword(encoder.encode(input.sanitize(updatePassword)));
+
+    if (repository.findByEmail(updateEmail).isPresent()) {
+      throw new UserUpdateException("email already taken: " + updateEmail);
     }
-    if (!updateEmail.equals("") && Boolean.TRUE.equals(isValidEmail(updateEmail))) {
-      if (!repository.findByEmail(updateEmail).isPresent()) {
-        existingUser.setEmail(updateEmail);
-      } else {
-        return formatter.format("email already taken: " + updateEmail, HttpStatus.CONFLICT);
-      }
-    } else if (!updateEmail.equals("") && Boolean.TRUE.equals(!isValidEmail(updateEmail))) {
-      return formatter.format("email invalid: " + updateEmail, HttpStatus.BAD_REQUEST);
-    }
+
+    existingUser.setEmail(updateEmail);
+    return true;
+  }
+
+  private ResponseEntity<Object> processUpdateResult(User existingUser, UpdateResult result) {
     try {
       repository.save(existingUser);
-      if (oldPassword.equals(existingUser.getPassword())
-          && oldName.equals(existingUser.getName())) {
-        return formatter.format(existingUser, HttpStatus.OK);
-      } else {
+
+      if (result.nameUpdated() || result.passwordUpdated()) {
         return formatter.format(
             "user updated: " + existingUser.getName() + ". token invalidated, please login again",
             HttpStatus.OK);
       }
 
+      return formatter.format(existingUser, HttpStatus.OK);
     } catch (Exception e) {
       return formatter.format("could not update user", HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  private class UserUpdateException extends RuntimeException {
+    public UserUpdateException(String message) {
+      super(message);
     }
   }
 
